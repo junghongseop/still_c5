@@ -1,8 +1,8 @@
 //
 //  ContentView.swift
-//  still
+//  Still
 //
-//  Created by 정홍섭 on 8/17/26.
+//  Created by 정홍섭 on 8/18/26.
 //
 
 import SwiftUI
