@@ -8,9 +8,12 @@
 import SwiftUI
 
 struct MomentTicket: View {
+    let poster: String
+    let logo: String
+    
     var body: some View {
         GeometryReader { geo in
-            Image("spiderman")
+            Image(poster)
                 .resizable()
                 .scaledToFill()
                 .frame(width: geo.size.width, height: geo.size.height)
@@ -18,7 +21,7 @@ struct MomentTicket: View {
                     VStack {
                         Spacer()
                         
-                        Image("logo")
+                        Image(logo)
                             .resizable()
                             .scaledToFit()
                             .frame(width: geo.size.width)
@@ -37,5 +40,5 @@ struct MomentTicket: View {
 }
 
 #Preview {
-    MomentTicket()
+    MomentTicket(poster: "spiderman", logo: "logo")
 }
