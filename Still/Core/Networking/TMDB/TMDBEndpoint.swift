@@ -9,6 +9,7 @@ import Foundation
 
 enum TMDBEndpoint {
     case searchMovie(query: String)
+    case detailMovie(id: Int)
     
     private var baseURL: String {
         "https://api.themoviedb.org/3"
@@ -24,6 +25,16 @@ enum TMDBEndpoint {
                 URLQueryItem(name: "query", value: query),
                 URLQueryItem(name: "language", value: "ko-KR"),
                 URLQueryItem(name: "include_adult", value: "true")
+            ]
+            
+            return components?.url
+            
+        case .detailMovie(let id):
+            var components = URLComponents(string: "\(baseURL)/movie/\(id)")
+            
+            components?.queryItems = [
+                URLQueryItem(name: "api_key", value: apiKey),
+                URLQueryItem(name: "language", value: "ko-KR"),
             ]
             
             return components?.url
