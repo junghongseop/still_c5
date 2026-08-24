@@ -8,5 +8,5 @@
 import Foundation
 
 struct TMDBWatchProviderRegion: Decodable {
-    let flatrate: []
+    let flatrate: [TMDBWatchProvider]?
 }
