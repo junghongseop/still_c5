@@ -8,34 +8,48 @@
 import SwiftUI
 
 struct StillTabView: View {
+    @Environment(AppRouter.self) private var router
+    
     var body: some View {
-        TabView {
-            Tab {
-                HomeView()
+        @Bindable var router = router
+        
+        TabView(selection: $router.selectedTab) {
+            Tab(value: AppTab.home) {
+                NavigationStack(path: $router.homePath) {
+                    HomeView()
+                }
             } label: {
                 Image(systemName: "house.fill")
             }
 
-            Tab {
-                CollectionView()
+            Tab(value: AppTab.collection) {
+                NavigationStack(path: $router.collectionPath) {
+                    CollectionView()
+                }
             } label: {
                 Image(systemName: "film.stack.fill")
             }
 
-            Tab {
-                RecommendationView()
+            Tab(value: AppTab.recommendation) {
+                NavigationStack(path: $router.recommendationPath) {
+                    RecommendationView()
+                }
             } label: {
                 Image(systemName: "sparkles")
             }
 
-            Tab {
-                MyView()
+            Tab(value: AppTab.my) {
+                NavigationStack(path: $router.myPath) {
+                    MyView()
+                }
             } label: {
                 Image(systemName: "person.fill")
             }
 
-            Tab(role: .search) {
-                TicketRegistrationView()
+            Tab(value: AppTab.ticketRegistration, role: .search) {
+                NavigationStack(path: $router.ticketRegistrationPath) {
+                    TicketRegistrationView()
+                }
             } label: {
                 Image(systemName: "plus")
             }
@@ -45,4 +59,5 @@ struct StillTabView: View {
 
 #Preview {
     StillTabView()
+        .environment(AppRouter())
 }

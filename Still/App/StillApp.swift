@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct StillApp: App {
+    @State private var router = AppRouter()
+    
     var body: some Scene {
         WindowGroup {
-            
+            StillTabView()
+                .environment(router)
         }
     }
 }
