@@ -11,6 +11,7 @@ enum TMDBEndpoint {
     case searchMovie(query: String)
     case detailMovie(id: Int)
     case movieWatchProviders(id: Int)
+    case movieImage(id: Int)
     
     private var baseURL: String {
         "https://api.themoviedb.org/3"
@@ -41,7 +42,12 @@ enum TMDBEndpoint {
             return components?.url
             
         case .movieWatchProviders(let id):
-            var components = URLComponents(string: "\(baseURL)/movie/\(id)/watch/providers")
+            let components = URLComponents(string: "\(baseURL)/movie/\(id)/watch/providers")
+            
+            return components?.url
+            
+        case .movieImage(let id):
+            let components = URLComponents(string: "\(baseURL)/movie/\(id)/images")
             
             return components?.url
         }

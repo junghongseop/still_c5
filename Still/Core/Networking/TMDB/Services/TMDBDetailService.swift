@@ -10,7 +10,7 @@ import Foundation
 final class TMDBDetailService {
     private let client = TMDBClient()
     
-    func detailMovie(id: Int) async throws -> TMDBMovieDetailResponse{
+    func detailMovie(id: Int) async throws -> TMDBMovieDetailResponse {
        try await client.request(
             .detailMovie(id: id)
         )
