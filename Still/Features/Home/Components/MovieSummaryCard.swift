@@ -1,0 +1,43 @@
+//
+//  MovieSummaryCard.swift
+//  Still
+//
+//  Created by 정홍섭 on 8/26/26.
+//
+
+import SwiftUI
+
+struct MovieSummaryCard: View {
+    let filter: String
+    let content: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(filter)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(StillColors.Accent.primary)
+                .frame(height: 17)
+            
+            Text(content)
+                .font(.system(size: 17, weight: .medium))
+                .foregroundStyle(StillColors.Content.primary)
+                .frame(height: 24)
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(StillColors.Surface.raised)
+        .cornerRadius(24)
+        .overlay {
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(StillColors.Border.subtle, lineWidth: 1)
+        }
+    }
+}
+
+#Preview {
+    MovieSummaryCard(
+        filter: "전체 기록",
+        content: "올해는 집에서 더 많이 봤어요"
+    )
+}
