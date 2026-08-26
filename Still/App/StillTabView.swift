@@ -10,48 +10,59 @@ import SwiftUI
 struct StillTabView: View {
     @Environment(AppRouter.self) private var router
     
+    private func navigationTab<Content: View>(
+        _ tab: AppTab,
+        path: Binding<[AppRoute]>,
+        role: TabRole? = nil,
+        @ViewBuilder content: () -> Content
+    ) -> some TabContent<AppTab> {
+        Tab(value: tab, role: role) {
+            NavigationStack(path: path) {
+                content()
+            }
+        } label: {
+            Image(systemName: tab.systemImage)
+        }
+    }
+    
     var body: some View {
         @Bindable var router = router
         
         TabView(selection: $router.selectedTab) {
-            Tab(value: AppTab.home) {
-                NavigationStack(path: $router.homePath) {
-                    HomeView()
-                }
-            } label: {
-                Image(systemName: "house.fill")
+            navigationTab(
+                .home,
+                path: $router.homePath
+            ) {
+                HomeView()
             }
-
-            Tab(value: AppTab.collection) {
-                NavigationStack(path: $router.collectionPath) {
-                    CollectionView()
-                }
-            } label: {
-                Image(systemName: "film.stack.fill")
+            
+            navigationTab(
+                .collection,
+                path: $router.collectionPath
+            ) {
+                CollectionView()
             }
-
-            Tab(value: AppTab.recommendation) {
-                NavigationStack(path: $router.recommendationPath) {
-                    RecommendationView()
-                }
-            } label: {
-                Image(systemName: "sparkles")
+            
+            navigationTab(
+                .recommendation,
+                path: $router.recommendationPath
+            ) {
+                RecommendationView()
             }
-
-            Tab(value: AppTab.my) {
-                NavigationStack(path: $router.myPath) {
-                    MyView()
-                }
-            } label: {
-                Image(systemName: "person.fill")
+            
+            navigationTab(
+                .my,
+                path: $router.myPath
+            ) {
+                MyView()
             }
-
-            Tab(value: AppTab.ticketRegistration, role: .search) {
-                NavigationStack(path: $router.ticketRegistrationPath) {
-                    TicketRegistrationView()
-                }
-            } label: {
-                Image(systemName: "plus")
+            
+            navigationTab(
+                .ticketRegistration,
+                path: $router.ticketRegistrationPath,
+                role: .search
+            ) {
+                TicketRegistrationView()
             }
         }
     }

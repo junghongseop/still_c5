@@ -89,6 +89,25 @@ enum AppTab: Hashable {
     case recommendation
     case my
     case ticketRegistration
+    
+    var systemImage: String {
+        switch self {
+        case .home:
+            "house.fill"
+            
+        case .collection:
+            "film.stack.fill"
+            
+        case .recommendation:
+            "sparkles"
+            
+        case .my:
+            "person.fill"
+            
+        case .ticketRegistration:
+            "plus"
+        }
+    }
 }
 
 enum AppRoute: Hashable {
