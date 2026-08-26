@@ -65,6 +65,7 @@ struct StillTabView: View {
                 TicketRegistrationView()
             }
         }
+        .tint(StillColors.Accent.primary)
     }
 }
 
