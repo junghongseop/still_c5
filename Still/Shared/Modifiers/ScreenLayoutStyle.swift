@@ -7,12 +7,26 @@
 
 import SwiftUI
 
-struct ScreenLayoutStyle: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+struct ScreenLayoutStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        ZStack {
+            StillColors.Surface.base
+                .ignoresSafeArea()
+
+            content
+                .frame(
+                    maxWidth: .infinity,
+                    maxHeight: .infinity,
+                    alignment: .topLeading
+                )
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+        }
     }
 }
 
-#Preview {
-    ScreenLayoutStyle()
+extension View {
+    func screenLayoutStyle() -> some View {
+        modifier(ScreenLayoutStyle())
+    }
 }
