@@ -51,10 +51,10 @@ struct StillTabView: View {
             }
             
             navigationTab(
-                .my,
-                path: $router.myPath
+                .setting,
+                path: $router.settingPath
             ) {
-                MyView()
+                SettingView()
             }
             
             navigationTab(
