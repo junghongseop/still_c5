@@ -15,7 +15,7 @@ final class AppRouter {
     var homePath: [AppRoute] = []
     var collectionPath: [AppRoute] = []
     var recommendationPath: [AppRoute] = []
-    var myPath: [AppRoute] = []
+    var settingPath: [AppRoute] = []
     var ticketRegistrationPath: [AppRoute] = []
     
     //    var sheet: AppSheet?
@@ -31,8 +31,8 @@ final class AppRouter {
         case .recommendation:
             recommendationPath.append(route)
             
-        case .my:
-            myPath.append(route)
+        case .setting:
+            settingPath.append(route)
             
         case .ticketRegistration:
             ticketRegistrationPath.append(route)
@@ -53,9 +53,9 @@ final class AppRouter {
             guard !recommendationPath.isEmpty else { return }
             recommendationPath.removeLast()
             
-        case .my:
-            guard !myPath.isEmpty else { return }
-            myPath.removeLast()
+        case .setting:
+            guard !settingPath.isEmpty else { return }
+            settingPath.removeLast()
             
         case .ticketRegistration:
             guard !ticketRegistrationPath.isEmpty else { return }
@@ -74,8 +74,8 @@ final class AppRouter {
         case .recommendation:
             recommendationPath.removeAll()
             
-        case .my:
-            myPath.removeAll()
+        case .setting:
+            settingPath.removeAll()
             
         case .ticketRegistration:
             ticketRegistrationPath.removeAll()
@@ -87,7 +87,7 @@ enum AppTab: Hashable {
     case home
     case collection
     case recommendation
-    case my
+    case setting
     case ticketRegistration
     
     var systemImage: String {
@@ -101,8 +101,8 @@ enum AppTab: Hashable {
         case .recommendation:
             "sparkles"
             
-        case .my:
-            "person.fill"
+        case .setting:
+            "gearshape.fill"
             
         case .ticketRegistration:
             "plus"

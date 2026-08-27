@@ -1,5 +1,5 @@
 //
-//  MyView.swift
+//  SettingView.swift
 //  Still
 //
 //  Created by 정홍섭 on 8/19/26.
@@ -7,12 +7,12 @@
 
 import SwiftUI
 
-struct MyView: View {
+struct SettingView: View {
     var body: some View {
-        Text("My")
+        Text("SettingView")
     }
 }
 
 #Preview {
-    MyView()
+    SettingView()
 }
