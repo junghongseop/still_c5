@@ -38,7 +38,7 @@ struct HomeView: View {
             
             Text("캐릭터")
                 .frame(maxWidth: .infinity)
-                .frame(height: 406)
+                .frame(maxHeight: 406)
                 .background()
         }
         .screenLayoutStyle()
