@@ -7,6 +7,7 @@
 
 import Foundation
 import Observation
+import SwiftUI
 
 @Observable
 final class AppRouter {
@@ -17,8 +18,6 @@ final class AppRouter {
     var recommendationPath: [AppRoute] = []
     var settingPath: [AppRoute] = []
     var ticketRegistrationPath: [AppRoute] = []
-    
-    //    var sheet: AppSheet?
     
     func push(_ route: AppRoute) {
         switch selectedTab {
@@ -79,6 +78,17 @@ final class AppRouter {
             
         case .ticketRegistration:
             ticketRegistrationPath.removeAll()
+        }
+    }
+
+    @ViewBuilder
+    func destination(for route: AppRoute) -> some View {
+        switch route {
+        case .movieDetail:
+            EmptyView()
+
+        case .ticketDetail:
+            CollectionDetailView()
         }
     }
 }

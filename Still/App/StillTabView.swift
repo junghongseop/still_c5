@@ -19,6 +19,9 @@ struct StillTabView: View {
         Tab(value: tab, role: role) {
             NavigationStack(path: path) {
                 content()
+                    .navigationDestination(for: AppRoute.self) { route in
+                        router.destination(for: route)
+                    }
             }
         } label: {
             Image(systemName: tab.systemImage)
