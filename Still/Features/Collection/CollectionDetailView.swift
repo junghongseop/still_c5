@@ -60,9 +60,9 @@ struct CollectionDetailView: View {
                     }
                 }
                 .padding(.horizontal, 24)
+                .padding(.top, 22)
                 .frame(maxWidth: .infinity)
             }
-            .padding(.top, 22)
             .scrollIndicators(.hidden)
             .scrollBounceBehavior(.basedOnSize)
         }
