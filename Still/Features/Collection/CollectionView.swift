@@ -8,7 +8,11 @@
 import SwiftUI
 
 struct CollectionView: View {
+    @Environment(AppRouter.self) private var router
+    
     @State private var selectedYear: Int?
+    
+    let ticketID = UUID()
     
     private let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -36,7 +40,11 @@ struct CollectionView: View {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(0..<10, id: \.self) { index in
-                        MomentTicket(poster: "spiderman", logo: "logo")
+                        Button {
+                            router.push(.ticketDetail(id: ticketID))
+                        } label: {
+                            MomentTicket(poster: "spiderman", logo: "logo")
+                        }
                     }
                 }
             }
@@ -49,4 +57,5 @@ struct CollectionView: View {
 
 #Preview {
     CollectionView()
+        .environment(AppRouter())
 }
