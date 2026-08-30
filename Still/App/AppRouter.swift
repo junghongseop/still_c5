@@ -85,7 +85,7 @@ final class AppRouter {
     func destination(for route: AppRoute) -> some View {
         switch route {
         case .movieDetail:
-            EmptyView()
+            RecommendationDetailView()
 
         case .ticketDetail:
             CollectionDetailView()
