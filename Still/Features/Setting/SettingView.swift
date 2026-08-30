@@ -9,7 +9,13 @@ import SwiftUI
 
 struct SettingView: View {
     var body: some View {
-        Text("SettingView")
+        VStack(alignment: .leading, spacing: 20) {
+            Text("설정")
+                .foregroundStyle(StillColors.Content.primary)
+                .bold()
+                .font(.system(size: 44))
+        }
+        .screenLayoutStyle()
     }
 }
 
