@@ -8,7 +8,10 @@
 import SwiftUI
 
 struct RecommendationSection: View {
+    @Environment(AppRouter.self) private var router
+    
     let title: String
+    let movieID: Int = 0
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -20,10 +23,14 @@ struct RecommendationSection: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(0..<10, id: \.self) { index in
-                        Image("poster")
-                            .resizable()
-                            .frame(width: 110, height: 166)
-                            .cornerRadius(8)
+                        Button {
+                            router.push(.movieDetail(id: movieID))
+                        } label: {
+                            Image("poster")
+                                .resizable()
+                                .frame(width: 110, height: 166)
+                                .cornerRadius(8)
+                        }
                     }
                 }
             }
@@ -34,4 +41,5 @@ struct RecommendationSection: View {
 #Preview {
     RecommendationSection(title: "곧 만나볼 추천 영화")
         .background(.black)
+        .environment(AppRouter())
 }
