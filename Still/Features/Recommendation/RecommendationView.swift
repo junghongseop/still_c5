@@ -31,4 +31,5 @@ struct RecommendationView: View {
 
 #Preview {
     RecommendationView()
+        .environment(AppRouter())
 }
