@@ -17,12 +17,11 @@ final class AppRouter {
     var collectionPath: [AppRoute] = []
     var recommendationPath: [AppRoute] = []
     var settingPath: [AppRoute] = []
-    var ticketRegistrationPath: [AppRoute] = []
     
     func push(_ route: AppRoute, on tab: AppTab? = nil) {
         let targetTab = tab ?? selectedTab
         
-        switch selectedTab {
+        switch targetTab {
         case .home:
             homePath.append(route)
             
@@ -93,6 +92,12 @@ final class AppRouter {
             
         case .ticketRegistration:
             TicketRegistrationView()
+
+        case .theaterMethodSelection:
+            MethodSelectionView()
+
+        case .homeMovieSearch:
+            HomeMovieSearchView()
         }
     }
 }
@@ -128,4 +133,6 @@ enum AppRoute: Hashable {
     case movieDetail(id: Int)
     case ticketDetail(id: UUID)
     case ticketRegistration
+    case theaterMethodSelection
+    case homeMovieSearch
 }
