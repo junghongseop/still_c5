@@ -120,9 +120,10 @@ struct RecommendationContent: View {
                 HStack(spacing: 4) {
                     Text("바로 보기")
                     
-                    Image(systemName: "arrow.up.right")
+                    Image(systemName: "chevron.right")
                 }
                 .foregroundStyle(StillColors.Content.secondary)
+                .font(.system(size: 16))
             }
         }
         .padding(.horizontal, 20)
