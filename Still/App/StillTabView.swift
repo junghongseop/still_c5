@@ -10,6 +10,27 @@ import SwiftUI
 struct StillTabView: View {
     @Environment(AppRouter.self) private var router
     
+    private var tabSelection: Binding<AppTab> {
+        Binding(
+            get: {
+                router.selectedTab
+            },
+            set: { newTab in
+                guard newTab == .ticketRegistration else {
+                    router.selectedTab = newTab
+                    return
+                }
+                
+                let currentTab = router.selectedTab
+                
+                Task { @MainActor in
+                    await Task.yield()
+                    router.push(.ticketRegistration, on: currentTab)
+                }
+            }
+        )
+    }
+    
     private func navigationTab<Content: View>(
         _ tab: AppTab,
         path: Binding<[AppRoute]>,
@@ -31,7 +52,7 @@ struct StillTabView: View {
     var body: some View {
         @Bindable var router = router
         
-        TabView(selection: $router.selectedTab) {
+        TabView(selection: tabSelection) {
             navigationTab(
                 .home,
                 path: $router.homePath
@@ -60,12 +81,10 @@ struct StillTabView: View {
                 SettingView()
             }
             
-            navigationTab(
-                .ticketRegistration,
-                path: $router.ticketRegistrationPath,
-                role: .search
-            ) {
-                TicketRegistrationView()
+            Tab(value: .ticketRegistration, role: .search) {
+                EmptyView()
+            } label: {
+                Image(systemName: "plus")
             }
         }
         .tint(StillColors.Accent.primary)

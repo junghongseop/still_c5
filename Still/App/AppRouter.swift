@@ -19,7 +19,9 @@ final class AppRouter {
     var settingPath: [AppRoute] = []
     var ticketRegistrationPath: [AppRoute] = []
     
-    func push(_ route: AppRoute) {
+    func push(_ route: AppRoute, on tab: AppTab? = nil) {
+        let targetTab = tab ?? selectedTab
+        
         switch selectedTab {
         case .home:
             homePath.append(route)
@@ -34,7 +36,7 @@ final class AppRouter {
             settingPath.append(route)
             
         case .ticketRegistration:
-            ticketRegistrationPath.append(route)
+            break
         }
     }
     
@@ -57,8 +59,7 @@ final class AppRouter {
             settingPath.removeLast()
             
         case .ticketRegistration:
-            guard !ticketRegistrationPath.isEmpty else { return }
-            ticketRegistrationPath.removeLast()
+            break
         }
     }
     
@@ -77,7 +78,7 @@ final class AppRouter {
             settingPath.removeAll()
             
         case .ticketRegistration:
-            ticketRegistrationPath.removeAll()
+            break
         }
     }
 
@@ -89,6 +90,9 @@ final class AppRouter {
 
         case .ticketDetail:
             CollectionDetailView()
+            
+        case .ticketRegistration:
+            TicketRegistrationView()
         }
     }
 }
@@ -123,4 +127,5 @@ enum AppTab: Hashable {
 enum AppRoute: Hashable {
     case movieDetail(id: Int)
     case ticketDetail(id: UUID)
+    case ticketRegistration
 }
