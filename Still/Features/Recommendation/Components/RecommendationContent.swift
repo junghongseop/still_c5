@@ -73,13 +73,22 @@ struct RecommendationContent: View {
                     Text("시청 가능한 곳")
                         .font(.system(size: 24, weight: .semibold))
                         .foregroundStyle(StillColors.Content.primary)
-
-                        VStack(spacing: 0) {
-                            Row("Netflix")
-                            Row("TVING")
-                        }
-                        .background(StillColors.Surface.raised)
-                        .cornerRadius(20)
+                    
+                    VStack(spacing: 0) {
+                        Row("Netflix")
+                        
+                        Rectangle()
+                            .fill(StillColors.Border.subtle)
+                            .frame(height: 1)
+                        
+                        Row("TVING")
+                    }
+                    .background(StillColors.Surface.raised)
+                    .cornerRadius(20)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(StillColors.Border.subtle, lineWidth: 1)
+                    )
                 }
             }
         }
