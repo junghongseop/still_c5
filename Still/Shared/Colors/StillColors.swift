@@ -34,7 +34,7 @@ enum StillColors {
         static let subtle: Color = .red12
     }
     
-    enum feedback {
+    enum Feedback {
         static let success: Color = .green500
         static let warning: Color = .amber500
         static let error: Color = .red400
