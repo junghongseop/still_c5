@@ -8,16 +8,30 @@
 import SwiftUI
 
 struct HomeView: View {
+    @Environment(AppRouter.self) private var router
+    
     @State private var selectedYear: Int?
     
     private let currentYear = DateUtility.currentYear
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("홈")
-                .foregroundStyle(StillColors.Content.primary)
-                .bold()
-                .font(.system(size: 44))
+            HStack {
+                Text("홈")
+                    .foregroundStyle(StillColors.Content.primary)
+                    .bold()
+                    .font(.system(size: 44))
+                
+                Spacer()
+                
+                Button {
+                    router.push(.setting)
+                } label: {
+                    Image(systemName: "person")
+                        .font(.system(size: 22))
+                        .foregroundStyle(StillColors.Content.primary)
+                }
+            }
             
             HStack(spacing: 8) {
                 FilterChip(title: "전체", isSelected: selectedYear == nil) {
@@ -47,4 +61,5 @@ struct HomeView: View {
 
 #Preview {
     HomeView()
+        .environment(AppRouter())
 }
