@@ -74,13 +74,6 @@ struct StillTabView: View {
                 RecommendationView()
             }
             
-            navigationTab(
-                .setting,
-                path: $router.settingPath
-            ) {
-                SettingView()
-            }
-            
             Tab(value: .ticketRegistration, role: .search) {
                 EmptyView()
             } label: {
