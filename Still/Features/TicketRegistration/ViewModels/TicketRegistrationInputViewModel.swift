@@ -16,11 +16,9 @@ final class TicketRegistrationInputViewModel {
     let movieTitle: String
     var watchedDate: Date
     var selectedTheater: TheaterOption?
-    var customTheater: String
     var selectedSeatRow: String?
     var selectedSeatNumber: Int?
     var selectedPlatform: PlatformOption?
-    var customPlatform: String
 
     init(context: TicketRegistrationContext) {
         place = context.place
@@ -29,12 +27,10 @@ final class TicketRegistrationInputViewModel {
 
         movieTitle = context.draft.movieTitle
         watchedDate = context.draft.watchedDate
-        let theaterSelection = TheaterOption.selection(
+        selectedTheater = TheaterOption.option(
             from: context.draft.theater
         )
-        selectedTheater = theaterSelection.option
             ?? (context.place == .theater ? .defaultOption : nil)
-        customTheater = theaterSelection.customText
 
         let seatSelection = SeatSelection(
             storedValue: context.draft.seat
@@ -48,12 +44,10 @@ final class TicketRegistrationInputViewModel {
                 ? SeatSelection.defaultSelection.number
                 : nil)
 
-        let platformSelection = PlatformOption.selection(
+        selectedPlatform = PlatformOption.option(
             from: context.draft.platform
         )
-        selectedPlatform = platformSelection.option
             ?? (context.place == .home ? .defaultOption : nil)
-        customPlatform = platformSelection.customText
     }
 
     var draft: TicketRegistrationDraft {
@@ -67,9 +61,7 @@ final class TicketRegistrationInputViewModel {
     }
 
     private var resolvedTheater: String {
-        guard let selectedTheater else { return "" }
-
-        return selectedTheater.resolvedValue(customText: customTheater)
+        selectedTheater?.rawValue ?? ""
     }
 
     private var resolvedSeat: String {
@@ -80,9 +72,7 @@ final class TicketRegistrationInputViewModel {
     }
 
     private var resolvedPlatform: String {
-        guard let selectedPlatform else { return "" }
-
-        return selectedPlatform.resolvedValue(customText: customPlatform)
+        selectedPlatform?.rawValue ?? ""
     }
 
 }

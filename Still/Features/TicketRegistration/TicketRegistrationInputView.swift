@@ -46,9 +46,7 @@ struct TicketRegistrationInputView: View {
                             RegistrationOptionPicker(
                                 title: "영화관",
                                 placeholder: "영화관을 선택해 주세요",
-                                selection: $viewModel.selectedTheater,
-                                customText: $viewModel.customTheater,
-                                customPlaceholder: "영화관 이름을 입력해 주세요"
+                                selection: $viewModel.selectedTheater
                             )
 
                             RegistrationSeatPicker(
@@ -60,9 +58,7 @@ struct TicketRegistrationInputView: View {
                             RegistrationOptionPicker(
                                 title: "플랫폼",
                                 placeholder: "플랫폼을 선택해 주세요",
-                                selection: $viewModel.selectedPlatform,
-                                customText: $viewModel.customPlatform,
-                                customPlaceholder: "플랫폼 이름을 입력해 주세요"
+                                selection: $viewModel.selectedPlatform
                             )
                         }
                     }
