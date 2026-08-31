@@ -29,9 +29,9 @@ struct TicketRegistrationView: View {
 
                     TicketRegistrationOptionButton(
                         title: "영화관에서 봤어요",
-                        description: "티켓 인식 또는 영화 검색으로 등록"
+                        description: "영화를 검색해 관람 기록으로 등록"
                     ) {
-                        router.push(.theaterMethodSelection)
+                        router.push(.theaterMovieSearch)
                     }
 
                     TicketRegistrationOptionButton(

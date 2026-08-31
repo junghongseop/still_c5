@@ -34,7 +34,7 @@ struct MethodSelectionButton: View {
 
 #Preview {
     MethodSelectionButton(
-        title: "카메라",
-        systemImage: "camera"
+        title: "영화 검색으로 등록",
+        systemImage: "magnifyingglass"
     ) {}
 }

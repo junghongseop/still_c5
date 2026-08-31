@@ -10,6 +10,7 @@ import SwiftUI
 struct MovieSearchContent: View {
     let title: String
     let subTitle: String
+    let onSelect: (MovieSearchViewModel.SearchResult) -> Void
     
     @State private var searchText = ""
     @State private var viewModel = MovieSearchViewModel()
@@ -61,13 +62,20 @@ struct MovieSearchContent: View {
                     description: "제목을 입력한 뒤 키보드의 검색 버튼을 누르세요."
                 )
             } else {
-                MovieSearchResults(results: viewModel.searchResults)
+                MovieSearchResults(
+                    results: viewModel.searchResults,
+                    onSelect: onSelect
+                )
             }
         }
     }
 }
 
 #Preview {
-    MovieSearchContent(title: "영화관", subTitle: "ㅎㅎ")
+    MovieSearchContent(
+        title: "영화관",
+        subTitle: "ㅎㅎ",
+        onSelect: { _ in }
+    )
         .background(StillColors.Surface.base)
 }

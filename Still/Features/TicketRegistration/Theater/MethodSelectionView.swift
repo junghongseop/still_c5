@@ -16,58 +16,24 @@ struct MethodSelectionView: View {
                 .ignoresSafeArea()
             
             VStack(alignment: .leading, spacing: 16) {
-                Text("티켓을 불러올 방법을 선택해 주세요")
-                    .font(.system(size: 24, weight: .regular))
-                    .foregroundStyle(StillColors.Content.primary)
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("지류 티켓이나 모바일 예매 화면을 인식해요")
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("영화관에서 본 영화를 찾아요")
+                        .font(.system(size: 24, weight: .regular))
+                        .foregroundStyle(StillColors.Content.primary)
+
+                    Text("영화 제목을 검색해 관람 기록으로 등록해요")
                         .font(.system(size: 16, weight: .regular))
                         .foregroundStyle(StillColors.Content.secondary)
-                    
-                    HStack(spacing: 12) {
-                        MethodSelectionButton(
-                            title: "카메라",
-                            systemImage: "camera"
-                        ) {}
-                        
-                        MethodSelectionButton(
-                            title: "사진 보관함",
-                            systemImage: "photo.on.rectangle.angled"
-                        ) {}
-                    }
                 }
-                
-                HStack(spacing: 12) {
-                    Rectangle()
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 1)
-                        .foregroundStyle(StillColors.Border.subtle)
-                    
-                    Text("또는")
-                        .font(.system(size: 12, weight: .regular))
-                        .foregroundStyle(StillColors.Content.teriary)
-                    
-                    Rectangle()
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 1)
-                        .foregroundStyle(StillColors.Border.subtle)
+
+                MethodSelectionButton(
+                    title: "영화 검색으로 등록",
+                    systemImage: "magnifyingglass"
+                ) {
+                    router.push(.theaterMovieSearch)
                 }
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("티켓이 없다면")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundStyle(StillColors.Content.primary)
-                    
-                    MethodSelectionButton(
-                        title: "영화 검색으로 등록",
-                        systemImage: "magnifyingglass"
-                    ) {
-                        router.push(.theaterMovieSearch)
-                    }
-                }
-                
-                Text("티켓 이미지는 인식 후 저장되지 않아요")
+
+                Text("영화를 선택한 뒤 관람 정보를 입력할 수 있어요")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(StillColors.Content.teriary)
             }
@@ -75,6 +41,8 @@ struct MethodSelectionView: View {
             .padding(.horizontal, 24)
             .frame(maxHeight: .infinity, alignment: .topLeading)
         }
+        .toolbarVisibility(.visible, for: .navigationBar)
+        .toolbarVisibility(.hidden, for: .tabBar)
     }
 }
 

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct MovieSearchResults: View {
     let results: [MovieSearchViewModel.SearchResult]
+    let onSelect: (MovieSearchViewModel.SearchResult) -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -19,7 +20,10 @@ struct MovieSearchResults: View {
             ScrollView {
                 LazyVStack(spacing: 8) {
                     ForEach(results.indices, id: \.self) { index in
-                        MovieSearchResultRow(result: results[index])
+                        MovieSearchResultRow(
+                            result: results[index],
+                            action: { onSelect(results[index]) }
+                        )
                     }
                 }
                 .padding(.bottom, 12)

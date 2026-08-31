@@ -90,6 +90,10 @@ final class AppRouter {
             
         case .theaterMovieSearch:
             TheaterMovieSearchView()
+
+        case let .ticketRegistrationInput(context):
+            TicketRegistrationInputView(context: context)
+                .id(context)
             
         case .setting:
             SettingView()
@@ -127,5 +131,6 @@ enum AppRoute: Hashable {
     case theaterMethodSelection
     case homeMovieSearch
     case theaterMovieSearch
+    case ticketRegistrationInput(TicketRegistrationContext)
     case setting
 }
