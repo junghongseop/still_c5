@@ -12,6 +12,7 @@ struct RegistrationOptionPicker<Option: RegistrationOption>: View {
     @Binding var customText: String
     let customPlaceholder: String
 
+    @State private var isOptionsPresented = false
     @FocusState private var isCustomTextFocused: Bool
 
     var body: some View {
@@ -30,40 +31,35 @@ struct RegistrationOptionPicker<Option: RegistrationOption>: View {
                     .padding(.trailing, 44)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Menu {
-                        optionMenuContent
+                    Button {
+                        isOptionsPresented = true
                     } label: {
-                        Image(systemName: "chevron.up.chevron.down")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(StillColors.Content.secondary)
-                            .frame(width: 32, height: 44)
+                        optionIndicator
                     }
                     .buttonStyle(.plain)
                 }
                 .frame(maxWidth: .infinity)
             } else {
-                HStack(spacing: 12) {
-                    Text(selection?.rawValue ?? placeholder)
-                        .font(.system(size: 17, weight: .regular))
-                        .foregroundStyle(
-                            selection == nil
-                                ? StillColors.Content.teriary
-                                : StillColors.Content.primary
-                        )
+                Button {
+                    isOptionsPresented = true
+                } label: {
+                    HStack(spacing: 12) {
+                        Text(selection?.rawValue ?? placeholder)
+                            .font(.system(size: 17, weight: .regular))
+                            .foregroundStyle(
+                                selection == nil
+                                    ? StillColors.Content.teriary
+                                    : StillColors.Content.primary
+                            )
 
-                    Spacer()
+                        Spacer()
 
-                    Menu {
-                        optionMenuContent
-                    } label: {
-                        Image(systemName: "chevron.up.chevron.down")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(StillColors.Content.secondary)
-                            .frame(width: 32, height: 44)
+                        optionIndicator
                     }
-                    .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
                 }
-                .frame(maxWidth: .infinity)
+                .buttonStyle(.plain)
             }
         }
         .onChange(of: selection) { _, _ in
@@ -72,18 +68,51 @@ struct RegistrationOptionPicker<Option: RegistrationOption>: View {
     }
 
     @ViewBuilder
-    private var optionMenuContent: some View {
-        ForEach(Option.options, id: \.self) { option in
-            Button {
-                selection = option
-            } label: {
-                if selection == option {
-                    Label(option.rawValue, systemImage: "checkmark")
-                } else {
-                    Text(option.rawValue)
+    private var optionPopoverContent: some View {
+        VStack(spacing: 4) {
+            ForEach(Option.options, id: \.self) { option in
+                Button {
+                    selection = option
+                    isOptionsPresented = false
+                } label: {
+                    HStack(spacing: 12) {
+                        Text(option.rawValue)
+                            .font(.system(size: 17, weight: .regular))
+                            .foregroundStyle(StillColors.Content.primary)
+
+                        Spacer()
+
+                        if selection == option {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(StillColors.Accent.primary)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .frame(height: 48)
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
             }
         }
+        .padding(.vertical, 8)
+        .frame(width: 220)
+        .presentationCompactAdaptation(.popover)
+        .presentationBackground(StillColors.Surface.raised)
+    }
+
+    private var optionIndicator: some View {
+        Image(systemName: "chevron.up.chevron.down")
+            .font(.system(size: 13, weight: .medium))
+            .foregroundStyle(StillColors.Content.secondary)
+            .frame(width: 32, height: 44)
+            .popover(
+                isPresented: $isOptionsPresented,
+                attachmentAnchor: .rect(.bounds),
+                arrowEdge: .trailing
+            ) {
+                optionPopoverContent
+            }
     }
 
     private var isCustomSelection: Bool {
