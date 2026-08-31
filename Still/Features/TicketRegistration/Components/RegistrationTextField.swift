@@ -11,11 +11,7 @@ struct RegistrationTextField: View {
     @Binding var text: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.system(size: 13, weight: .regular))
-                .foregroundStyle(StillColors.Content.secondary)
-
+        RegistrationField(title: title) {
             TextField(
                 "",
                 text: $text,
@@ -24,14 +20,6 @@ struct RegistrationTextField: View {
             )
             .font(.system(size: 17, weight: .regular))
             .foregroundStyle(StillColors.Content.primary)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 18)
-            .background(StillColors.Surface.raised)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay {
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(StillColors.Border.subtle, lineWidth: 1)
-            }
         }
     }
 }

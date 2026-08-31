@@ -18,11 +18,7 @@ struct RegistrationOptionPicker<Option: Hashable>: View {
     @FocusState private var isCustomTextFocused: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.system(size: 13, weight: .regular))
-                .foregroundStyle(StillColors.Content.secondary)
-
+        RegistrationField(title: title) {
             if isCustomSelection {
                 ZStack(alignment: .trailing) {
                     TextField(
@@ -47,15 +43,7 @@ struct RegistrationOptionPicker<Option: Hashable>: View {
                     }
                     .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 16)
                 .frame(maxWidth: .infinity)
-                .frame(minHeight: 64)
-                .background(StillColors.Surface.raised)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(StillColors.Border.subtle, lineWidth: 1)
-                }
             } else {
                 HStack(spacing: 12) {
                     Text(selection.map(optionTitle) ?? placeholder)
@@ -78,15 +66,7 @@ struct RegistrationOptionPicker<Option: Hashable>: View {
                     }
                     .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 16)
                 .frame(maxWidth: .infinity)
-                .frame(minHeight: 64)
-                .background(StillColors.Surface.raised)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(StillColors.Border.subtle, lineWidth: 1)
-                }
             }
         }
         .onChange(of: selection) { _, _ in

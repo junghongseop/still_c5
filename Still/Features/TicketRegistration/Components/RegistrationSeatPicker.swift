@@ -19,11 +19,7 @@ struct RegistrationSeatPicker: View {
     private let numbers = Array(1...99)
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("좌석")
-                .font(.system(size: 13, weight: .regular))
-                .foregroundStyle(StillColors.Content.secondary)
-
+        RegistrationField(title: "좌석") {
             Button {
                 draftRow = selectedRow
                 draftNumber = selectedNumber
@@ -44,20 +40,22 @@ struct RegistrationSeatPicker: View {
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(StillColors.Content.secondary)
                 }
-                .padding(.horizontal, 16)
                 .frame(maxWidth: .infinity)
-                .frame(minHeight: 64)
-                .background(StillColors.Surface.raised)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(StillColors.Border.subtle, lineWidth: 1)
-                }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
         }
         .sheet(isPresented: $isPickerPresented) {
-            NavigationStack {
+            RegistrationPickerSheet(
+                title: "좌석 선택",
+                isConfirmationDisabled: draftRow == nil || draftNumber == nil,
+                onCancel: { isPickerPresented = false },
+                onConfirm: {
+                    selectedRow = draftRow
+                    selectedNumber = draftNumber
+                    isPickerPresented = false
+                }
+            ) {
                 HStack(spacing: 12) {
                     Picker("좌석 열", selection: $draftRow) {
                         Text("열 선택")
@@ -94,34 +92,7 @@ struct RegistrationSeatPicker: View {
                     .frame(maxWidth: .infinity)
                 }
                 .padding(.horizontal, 24)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(.clear)
-                .toolbar {
-                    ToolbarItem(placement: .principal) {
-                        Text("좌석 선택")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(StillColors.Content.primary)
-                    }
-
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("취소") {
-                            isPickerPresented = false
-                        }
-                    }
-
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("완료") {
-                            selectedRow = draftRow
-                            selectedNumber = draftNumber
-                            isPickerPresented = false
-                        }
-                        .disabled(draftRow == nil || draftNumber == nil)
-                    }
-                }
             }
-            .presentationDetents([.height(360)])
-            .presentationBackground(StillColors.Surface.base)
-            .presentationDragIndicator(.hidden)
         }
     }
 
