@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MovieSearchContent: View {
     let title: String
-    let subTitle: String
+    let subtitle: String
     let onSelect: (MovieSearchViewModel.SearchResult) -> Void
     
     @State private var searchText = ""
@@ -17,15 +17,7 @@ struct MovieSearchContent: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.system(size: 22, weight: .regular))
-                    .foregroundStyle(StillColors.Content.primary)
-                
-                Text(subTitle)
-                    .font(.system(size: 15, weight: .regular))
-                    .foregroundStyle(StillColors.Content.secondary)
-            }
+            RegistrationHeader(title: title, subtitle: subtitle)
             
             MovieSearchField(text: $searchText)
                 .onSubmit {
@@ -74,7 +66,7 @@ struct MovieSearchContent: View {
 #Preview {
     MovieSearchContent(
         title: "영화관",
-        subTitle: "ㅎㅎ",
+        subtitle: "ㅎㅎ",
         onSelect: { _ in }
     )
         .background(StillColors.Surface.base)

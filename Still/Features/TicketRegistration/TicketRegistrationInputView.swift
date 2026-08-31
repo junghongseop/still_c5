@@ -23,15 +23,10 @@ struct TicketRegistrationInputView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(viewModel.headerTitle)
-                            .font(.system(size: 22, weight: .regular))
-                            .foregroundStyle(StillColors.Content.primary)
-
-                        Text(viewModel.headerDescription)
-                            .font(.system(size: 15, weight: .regular))
-                            .foregroundStyle(StillColors.Content.secondary)
-                    }
+                    RegistrationHeader(
+                        title: viewModel.headerTitle,
+                        subtitle: viewModel.headerDescription
+                    )
 
                     VStack(spacing: 20) {
                         RegistrationValueField(

@@ -17,15 +17,11 @@ struct TicketRegistrationView: View {
 
             VStack(alignment: .leading, spacing: 36) {
                 VStack(alignment: .leading, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("어디에서 본 영화인가요?")
-                            .font(.system(size: 24, weight: .regular))
-                            .foregroundStyle(StillColors.Content.primary)
-
-                        Text("관람 환경에 맞는 방법으로 빠르게 기록해요")
-                            .font(.system(size: 16, weight: .regular))
-                            .foregroundStyle(StillColors.Content.secondary)
-                    }
+                    RegistrationHeader(
+                        title: "어디에서 본 영화인가요?",
+                        subtitle: "관람 환경에 맞는 방법으로 빠르게 기록해요",
+                        style: .large
+                    )
 
                     TicketRegistrationOptionButton(
                         title: "영화관에서 봤어요",

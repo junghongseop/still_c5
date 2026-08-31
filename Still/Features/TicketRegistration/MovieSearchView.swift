@@ -17,7 +17,7 @@ struct MovieSearchView: View {
 
             MovieSearchContent(
                 title: title,
-                subTitle: subTitle,
+                subtitle: subtitle,
                 onSelect: handleSelection
             )
             .padding(.top, 16)
@@ -36,7 +36,7 @@ struct MovieSearchView: View {
         }
     }
 
-    private var subTitle: String {
+    private var subtitle: String {
         switch place {
         case .theater:
             "티켓이 없는 예전 관람도 영화 제목으로 찾아요"
