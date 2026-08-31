@@ -95,8 +95,8 @@ final class AppRouter {
             TicketRegistrationInputView(context: context)
                 .id(context)
 
-        case let .movieReview(id):
-            MovieReviewView(movieID: id)
+        case let .movieReview(id, title, poster):
+            MovieReviewView(id: id, title: title, poster: poster)
             
         case .setting:
             SettingView()
@@ -135,6 +135,6 @@ enum AppRoute: Hashable {
     case homeMovieSearch
     case theaterMovieSearch
     case ticketRegistrationInput(TicketRegistrationContext)
-    case movieReview(id: Int)
+    case movieReview(id: Int, title: String, poster: String?)
     case setting
 }

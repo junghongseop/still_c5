@@ -74,7 +74,13 @@ struct TicketRegistrationInputView: View {
         .safeAreaInset(edge: .bottom) {
             Button {
                 Log.debug("Registration draft:", viewModel.draft)
-                router.push(.movieReview(id: viewModel.movieID))
+                router.push(
+                    .movieReview(
+                        id: viewModel.movieID,
+                        title: viewModel.movieTitle,
+                        poster: viewModel.posterPath
+                    )
+                )
             } label: {
                 Text("입력한 정보로 등록")
                     .font(.system(size: 17, weight: .medium))

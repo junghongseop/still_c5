@@ -15,7 +15,8 @@ final class MovieSearchViewModel {
         id: Int,
         originalTitle: String,
         title: String,
-        releaseDate: String?
+        releaseDate: String?,
+        posterPath: String?
     )
     
     private(set) var searchResults: [SearchResult] = []
@@ -64,7 +65,8 @@ final class MovieSearchViewModel {
                     id: $0.id,
                     originalTitle: $0.originalTitle,
                     title: $0.title,
-                    releaseDate: $0.releaseDate
+                    releaseDate: $0.releaseDate,
+                    posterPath: $0.posterPath
                 )
             }
             

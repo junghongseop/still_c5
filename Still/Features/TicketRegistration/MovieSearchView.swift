@@ -53,7 +53,8 @@ struct MovieSearchView: View {
             place: place,
             draft: TicketRegistrationDraft(
                 movieID: result.id,
-                movieTitle: result.title
+                movieTitle: result.title,
+                posterPath: result.posterPath
             )
         )
         router.push(.ticketRegistrationInput(context))
