@@ -29,12 +29,12 @@ final class TicketRegistrationInputViewModel {
 
         movieTitle = context.draft.movieTitle
         watchedDate = context.draft.watchedDate
-        let theaterSelection = Self.theaterSelection(
+        let theaterSelection = TheaterOption.selection(
             from: context.draft.theater
         )
-        selectedTheater = theaterSelection.0
-            ?? (context.place == .theater ? .cgv : nil)
-        customTheater = theaterSelection.1
+        selectedTheater = theaterSelection.option
+            ?? (context.place == .theater ? .defaultOption : nil)
+        customTheater = theaterSelection.customText
 
         let seatSelection = Self.seatSelection(
             from: context.draft.seat
@@ -44,12 +44,12 @@ final class TicketRegistrationInputViewModel {
         selectedSeatNumber = seatSelection.1
             ?? (context.place == .theater ? 1 : nil)
 
-        let platformSelection = Self.platformSelection(
+        let platformSelection = PlatformOption.selection(
             from: context.draft.platform
         )
-        selectedPlatform = platformSelection.0
-            ?? (context.place == .home ? .tving : nil)
-        customPlatform = platformSelection.1
+        selectedPlatform = platformSelection.option
+            ?? (context.place == .home ? .defaultOption : nil)
+        customPlatform = platformSelection.customText
     }
 
     var draft: TicketRegistrationDraft {
@@ -65,9 +65,7 @@ final class TicketRegistrationInputViewModel {
     private var resolvedTheater: String {
         guard let selectedTheater else { return "" }
 
-        return selectedTheater == .other
-            ? customTheater.trimmingCharacters(in: .whitespacesAndNewlines)
-            : selectedTheater.rawValue
+        return selectedTheater.resolvedValue(customText: customTheater)
     }
 
     private var resolvedSeat: String {
@@ -78,37 +76,7 @@ final class TicketRegistrationInputViewModel {
     private var resolvedPlatform: String {
         guard let selectedPlatform else { return "" }
 
-        return selectedPlatform == .other
-            ? customPlatform.trimmingCharacters(in: .whitespacesAndNewlines)
-            : selectedPlatform.rawValue
-    }
-
-    private static func theaterSelection(
-        from theater: String
-    ) -> (TheaterOption?, String) {
-        guard !theater.isEmpty else { return (nil, "") }
-
-        if let option = TheaterOption.allCases.first(
-            where: { $0 != .other && $0.rawValue == theater }
-        ) {
-            return (option, "")
-        }
-
-        return (.other, theater)
-    }
-
-    private static func platformSelection(
-        from platform: String
-    ) -> (PlatformOption?, String) {
-        guard !platform.isEmpty else { return (nil, "") }
-
-        if let option = PlatformOption.allCases.first(
-            where: { $0 != .other && $0.rawValue == platform }
-        ) {
-            return (option, "")
-        }
-
-        return (.other, platform)
+        return selectedPlatform.resolvedValue(customText: customPlatform)
     }
 
     private static func seatSelection(

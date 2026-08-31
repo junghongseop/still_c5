@@ -53,10 +53,7 @@ struct TicketRegistrationInputView: View {
                                 placeholder: "영화관을 선택해 주세요",
                                 selection: $viewModel.selectedTheater,
                                 customText: $viewModel.customTheater,
-                                customPlaceholder: "영화관 이름을 입력해 주세요",
-                                options: TheaterOption.allCases,
-                                optionTitle: \.rawValue,
-                                isCustomOption: { $0 == .other }
+                                customPlaceholder: "영화관 이름을 입력해 주세요"
                             )
 
                             RegistrationSeatPicker(
@@ -70,10 +67,7 @@ struct TicketRegistrationInputView: View {
                                 placeholder: "플랫폼을 선택해 주세요",
                                 selection: $viewModel.selectedPlatform,
                                 customText: $viewModel.customPlatform,
-                                customPlaceholder: "플랫폼 이름을 입력해 주세요",
-                                options: PlatformOption.allCases,
-                                optionTitle: \.rawValue,
-                                isCustomOption: { $0 == .other }
+                                customPlaceholder: "플랫폼 이름을 입력해 주세요"
                             )
                         }
                     }

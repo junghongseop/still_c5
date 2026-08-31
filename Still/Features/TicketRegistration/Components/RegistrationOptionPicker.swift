@@ -5,15 +5,12 @@
 
 import SwiftUI
 
-struct RegistrationOptionPicker<Option: Hashable>: View {
+struct RegistrationOptionPicker<Option: RegistrationOption>: View {
     let title: String
     let placeholder: String
     @Binding var selection: Option?
     @Binding var customText: String
     let customPlaceholder: String
-    let options: [Option]
-    let optionTitle: (Option) -> String
-    let isCustomOption: (Option) -> Bool
 
     @FocusState private var isCustomTextFocused: Bool
 
@@ -46,7 +43,7 @@ struct RegistrationOptionPicker<Option: Hashable>: View {
                 .frame(maxWidth: .infinity)
             } else {
                 HStack(spacing: 12) {
-                    Text(selection.map(optionTitle) ?? placeholder)
+                    Text(selection?.rawValue ?? placeholder)
                         .font(.system(size: 17, weight: .regular))
                         .foregroundStyle(
                             selection == nil
@@ -76,21 +73,21 @@ struct RegistrationOptionPicker<Option: Hashable>: View {
 
     @ViewBuilder
     private var optionMenuContent: some View {
-        ForEach(options, id: \.self) { option in
+        ForEach(Option.options, id: \.self) { option in
             Button {
                 selection = option
             } label: {
                 if selection == option {
-                    Label(optionTitle(option), systemImage: "checkmark")
+                    Label(option.rawValue, systemImage: "checkmark")
                 } else {
-                    Text(optionTitle(option))
+                    Text(option.rawValue)
                 }
             }
         }
     }
 
     private var isCustomSelection: Bool {
-        selection.map(isCustomOption) ?? false
+        selection == Option.customOption
     }
 
     private func focusCustomFieldIfNeeded() {
