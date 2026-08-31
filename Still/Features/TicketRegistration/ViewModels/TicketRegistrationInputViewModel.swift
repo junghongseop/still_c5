@@ -36,13 +36,17 @@ final class TicketRegistrationInputViewModel {
             ?? (context.place == .theater ? .defaultOption : nil)
         customTheater = theaterSelection.customText
 
-        let seatSelection = Self.seatSelection(
-            from: context.draft.seat
+        let seatSelection = SeatSelection(
+            storedValue: context.draft.seat
         )
-        selectedSeatRow = seatSelection.0
-            ?? (context.place == .theater ? "A" : nil)
-        selectedSeatNumber = seatSelection.1
-            ?? (context.place == .theater ? 1 : nil)
+        selectedSeatRow = seatSelection?.row
+            ?? (context.place == .theater
+                ? SeatSelection.defaultSelection.row
+                : nil)
+        selectedSeatNumber = seatSelection?.number
+            ?? (context.place == .theater
+                ? SeatSelection.defaultSelection.number
+                : nil)
 
         let platformSelection = PlatformOption.selection(
             from: context.draft.platform
@@ -69,8 +73,10 @@ final class TicketRegistrationInputViewModel {
     }
 
     private var resolvedSeat: String {
-        guard let selectedSeatRow, let selectedSeatNumber else { return "" }
-        return "\(selectedSeatRow)열 \(selectedSeatNumber)번"
+        SeatSelection(
+            selectedRow: selectedSeatRow,
+            selectedNumber: selectedSeatNumber
+        )?.storedValue ?? ""
     }
 
     private var resolvedPlatform: String {
@@ -79,18 +85,4 @@ final class TicketRegistrationInputViewModel {
         return selectedPlatform.resolvedValue(customText: customPlatform)
     }
 
-    private static func seatSelection(
-        from seat: String
-    ) -> (String?, Int?) {
-        let normalizedSeat = seat.uppercased()
-        let row = normalizedSeat.first.map(String.init).flatMap {
-            ("A"..."Z").contains($0) ? $0 : nil
-        }
-        let number = normalizedSeat
-            .split(whereSeparator: { !$0.isNumber })
-            .compactMap { Int($0) }
-            .first
-
-        return (row, number)
-    }
 }

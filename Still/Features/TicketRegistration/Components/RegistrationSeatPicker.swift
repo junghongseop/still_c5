@@ -13,11 +13,6 @@ struct RegistrationSeatPicker: View {
     @State private var draftRow: String?
     @State private var draftNumber: Int?
 
-    private let rows = (65...90).compactMap {
-        UnicodeScalar($0).map { String(Character($0)) }
-    }
-    private let numbers = Array(1...99)
-
     var body: some View {
         RegistrationField(title: "좌석") {
             Button {
@@ -62,7 +57,7 @@ struct RegistrationSeatPicker: View {
                             .foregroundStyle(StillColors.Content.primary)
                             .tag(nil as String?)
 
-                        ForEach(rows, id: \.self) { row in
+                        ForEach(SeatSelection.availableRows, id: \.self) { row in
                             Text("\(row)열")
                                 .foregroundStyle(StillColors.Content.primary)
                                 .tag(row as String?)
@@ -79,7 +74,7 @@ struct RegistrationSeatPicker: View {
                             .foregroundStyle(StillColors.Content.primary)
                             .tag(nil as Int?)
 
-                        ForEach(numbers, id: \.self) { number in
+                        ForEach(SeatSelection.availableNumbers, id: \.self) { number in
                             Text("\(number)번")
                                 .foregroundStyle(StillColors.Content.primary)
                                 .tag(number as Int?)
