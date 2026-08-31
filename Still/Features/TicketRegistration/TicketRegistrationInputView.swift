@@ -6,6 +6,7 @@
 import SwiftUI
 
 struct TicketRegistrationInputView: View {
+    @Environment(AppRouter.self) private var router
     @State private var viewModel: TicketRegistrationInputViewModel
 
     init(context: TicketRegistrationContext) {
@@ -73,6 +74,7 @@ struct TicketRegistrationInputView: View {
         .safeAreaInset(edge: .bottom) {
             Button {
                 Log.debug("Registration draft:", viewModel.draft)
+                router.push(.movieReview(id: viewModel.movieID))
             } label: {
                 Text("입력한 정보로 등록")
                     .font(.system(size: 17, weight: .medium))
@@ -99,6 +101,7 @@ struct TicketRegistrationInputView: View {
             context: TicketRegistrationContext(
                 place: .theater,
                 draft: TicketRegistrationDraft(
+                    movieID: 986056,
                     movieTitle: "스파이더맨: 브랜드 뉴 데이",
                     theater: "CGV",
                     seat: "H열 09번"
@@ -106,6 +109,7 @@ struct TicketRegistrationInputView: View {
             )
         )
     }
+    .environment(AppRouter())
 }
 
 #Preview("Home Movie") {
@@ -114,9 +118,11 @@ struct TicketRegistrationInputView: View {
             context: TicketRegistrationContext(
                 place: .home,
                 draft: TicketRegistrationDraft(
+                    movieID: 666277,
                     movieTitle: "패스트 라이브즈"
                 )
             )
         )
     }
+    .environment(AppRouter())
 }

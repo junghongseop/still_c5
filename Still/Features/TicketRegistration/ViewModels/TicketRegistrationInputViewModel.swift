@@ -13,6 +13,7 @@ final class TicketRegistrationInputViewModel {
     let headerTitle: String
     let headerDescription: String
 
+    let movieID: Int
     let movieTitle: String
     var watchedDate: Date
     var selectedTheater: TheaterOption?
@@ -25,6 +26,7 @@ final class TicketRegistrationInputViewModel {
         headerTitle = context.headerTitle
         headerDescription = context.headerDescription
 
+        movieID = context.draft.movieID
         movieTitle = context.draft.movieTitle
         watchedDate = context.draft.watchedDate
         selectedTheater = TheaterOption.option(
@@ -52,6 +54,7 @@ final class TicketRegistrationInputViewModel {
 
     var draft: TicketRegistrationDraft {
         TicketRegistrationDraft(
+            movieID: movieID,
             movieTitle: movieTitle,
             watchedDate: watchedDate,
             theater: place == .theater ? resolvedTheater : "",
