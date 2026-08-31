@@ -13,6 +13,7 @@ struct MovieReviewView: View {
     let poster: String?
 
     @State private var selectedRating = 0.5
+    @State private var selectedTasteFit: TasteFitOption = .average
 
     private func starSymbol(for star: Int) -> String {
         if selectedRating >= Double(star) {
@@ -41,49 +42,57 @@ struct MovieReviewView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                VStack(spacing: 12) {
-                    if let poster {
-                        AsyncImage(
-                            url: URL(string: "https://image.tmdb.org/t/p/original\(poster)")
-                        ) { image in
-                            image
-                                .resizable()
-                                .scaledToFill()
-                        } placeholder: {
-                            ProgressView()
-                                .tint(StillColors.Accent.primary)
+                ScrollView {
+                    VStack(spacing: 12) {
+                        if let poster {
+                            AsyncImage(
+                                url: URL(string: "https://image.tmdb.org/t/p/original\(poster)")
+                            ) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            } placeholder: {
+                                ProgressView()
+                                    .tint(StillColors.Accent.primary)
+                            }
+                            .frame(width: 134, height: 202)
                         }
-                        .frame(width: 134, height: 202)
-                    }
 
-                    HStack(spacing: 8) {
-                        Text("별점")
-                            .font(.system(size: 17, weight: .medium))
-                            .foregroundStyle(StillColors.Content.secondary)
+                        HStack(spacing: 8) {
+                            Text("별점")
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundStyle(StillColors.Content.secondary)
 
-                        ForEach(1...5, id: \.self) { star in
-                            Image(systemName: starSymbol(for: star))
-                                .font(.system(size: 24))
-                                .foregroundStyle(
-                                    selectedRating >= Double(star) - 0.5
-                                    ? StillColors.Accent.primary
+                            ForEach(1...5, id: \.self) { star in
+                                Image(systemName: starSymbol(for: star))
+                                    .font(.system(size: 24))
+                                    .foregroundStyle(
+                                        selectedRating >= Double(star) - 0.5
+                                        ? StillColors.Accent.primary
                                         : StillColors.Content.teriary
-                                )
-                                .frame(width: 28, height: 28)
-                                .contentShape(Rectangle())
-                                .gesture(
-                                    SpatialTapGesture()
-                                        .onEnded { value in
-                                            let score = value.location.x < 14
+                                    )
+                                    .frame(width: 28, height: 28)
+                                    .contentShape(Rectangle())
+                                    .gesture(
+                                        SpatialTapGesture()
+                                            .onEnded { value in
+                                                let score = value.location.x < 14
                                                 ? 0.5
                                                 : 1.0
-                                            selectedRating = Double(star - 1) + score
-                                        }
+                                                selectedRating = Double(star - 1) + score
+                                            }
                                 )
+                            }
                         }
+
+                        MovieReviewTasteFitView(
+                            selection: $selectedTasteFit
+                        )
                     }
                 }
                 .frame(maxWidth: .infinity)
+                .scrollIndicators(.hidden)
+                .scrollBounceBehavior(.basedOnSize)
             }
             .padding(.top, 12)
             .padding(.horizontal, 24)
