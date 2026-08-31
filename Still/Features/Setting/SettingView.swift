@@ -15,6 +15,7 @@ struct SettingView: View {
                 .bold()
                 .font(.system(size: 44))
         }
+        .toolbarVisibility(.hidden, for: .tabBar)
         .screenLayoutStyle()
     }
 }
