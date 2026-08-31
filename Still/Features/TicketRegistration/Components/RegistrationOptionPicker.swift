@@ -45,7 +45,7 @@ struct RegistrationOptionPicker<Option: RegistrationOption>: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .environment(\.colorScheme, .light)
+            .environment(\.colorScheme, .dark)
         }
     }
 }
