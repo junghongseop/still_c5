@@ -112,6 +112,7 @@ struct TicketRegistrationInputView: View {
             .padding(.vertical, 12)
             .background(StillColors.Surface.base)
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .toolbarVisibility(.visible, for: .navigationBar)
         .toolbarVisibility(.hidden, for: .tabBar)
     }
