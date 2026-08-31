@@ -59,18 +59,6 @@ struct MovieSearchField: View {
 }
 
 #Preview {
-    @Previewable @State var text = ""
-    
-    ZStack {
-        StillColors.Surface.base
-            .ignoresSafeArea()
-        
-        MovieSearchField(text: $text)
-            .padding(.horizontal, 20)
-    }
-}
-
-#Preview {
     @Previewable @State var text = "스파이더맨"
     
     ZStack {
