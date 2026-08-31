@@ -34,19 +34,20 @@ struct TicketRegistrationInputView: View {
                     }
 
                     VStack(spacing: 20) {
+                        RegistrationValueField(
+                            title: "영화",
+                            value: viewModel.movieTitle
+                        )
+
+                        RegistrationDatePicker(
+                            title: viewModel.place == .theater
+                                ? "관람일"
+                                : "시청일",
+                            selection: $viewModel.watchedDate
+                        )
+
                         switch viewModel.place {
                         case .theater:
-                            RegistrationTextField(
-                                title: "영화",
-                                prompt: "영화 제목을 입력해 주세요",
-                                text: $viewModel.movieTitle
-                            )
-
-                            RegistrationDatePicker(
-                                title: "관람일",
-                                selection: $viewModel.watchedDate
-                            )
-
                             RegistrationOptionPicker(
                                 title: "영화관",
                                 placeholder: "영화관을 선택해 주세요",
@@ -64,17 +65,6 @@ struct TicketRegistrationInputView: View {
                             )
 
                         case .home:
-                            RegistrationTextField(
-                                title: "영화",
-                                prompt: "영화 제목을 입력해 주세요",
-                                text: $viewModel.movieTitle
-                            )
-
-                            RegistrationDatePicker(
-                                title: "시청일",
-                                selection: $viewModel.watchedDate
-                            )
-
                             RegistrationOptionPicker(
                                 title: "플랫폼",
                                 placeholder: "플랫폼을 선택해 주세요",

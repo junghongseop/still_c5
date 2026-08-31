@@ -13,7 +13,7 @@ final class TicketRegistrationInputViewModel {
     let headerTitle: String
     let headerDescription: String
 
-    var movieTitle: String
+    let movieTitle: String
     var watchedDate: Date
     var selectedTheater: TheaterOption?
     var customTheater: String
