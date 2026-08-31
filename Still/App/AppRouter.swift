@@ -16,7 +16,6 @@ final class AppRouter {
     var homePath: [AppRoute] = []
     var collectionPath: [AppRoute] = []
     var recommendationPath: [AppRoute] = []
-    var settingPath: [AppRoute] = []
     
     func push(_ route: AppRoute, on tab: AppTab? = nil) {
         let targetTab = tab ?? selectedTab
@@ -30,9 +29,6 @@ final class AppRouter {
             
         case .recommendation:
             recommendationPath.append(route)
-            
-        case .setting:
-            settingPath.append(route)
             
         case .ticketRegistration:
             break
@@ -53,10 +49,6 @@ final class AppRouter {
             guard !recommendationPath.isEmpty else { return }
             recommendationPath.removeLast()
             
-        case .setting:
-            guard !settingPath.isEmpty else { return }
-            settingPath.removeLast()
-            
         case .ticketRegistration:
             break
         }
@@ -72,9 +64,6 @@ final class AppRouter {
             
         case .recommendation:
             recommendationPath.removeAll()
-            
-        case .setting:
-            settingPath.removeAll()
             
         case .ticketRegistration:
             break
@@ -98,6 +87,12 @@ final class AppRouter {
 
         case .homeMovieSearch:
             HomeMovieSearchView()
+            
+        case .theaterMovieSearch:
+            TheaterMovieSearchView()
+            
+        case .setting:
+            SettingView()
         }
     }
 }
@@ -106,7 +101,6 @@ enum AppTab: Hashable {
     case home
     case collection
     case recommendation
-    case setting
     case ticketRegistration
     
     var systemImage: String {
@@ -120,9 +114,6 @@ enum AppTab: Hashable {
         case .recommendation:
             "sparkles"
             
-        case .setting:
-            "gearshape.fill"
-            
         case .ticketRegistration:
             "plus"
         }
@@ -135,4 +126,6 @@ enum AppRoute: Hashable {
     case ticketRegistration
     case theaterMethodSelection
     case homeMovieSearch
+    case theaterMovieSearch
+    case setting
 }
