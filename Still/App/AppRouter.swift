@@ -86,10 +86,10 @@ final class AppRouter {
             MethodSelectionView()
 
         case .homeMovieSearch:
-            HomeMovieSearchView()
+            MovieSearchView(place: .home)
             
         case .theaterMovieSearch:
-            TheaterMovieSearchView()
+            MovieSearchView(place: .theater)
 
         case let .ticketRegistrationInput(context):
             TicketRegistrationInputView(context: context)
