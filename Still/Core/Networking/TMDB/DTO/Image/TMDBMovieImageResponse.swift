@@ -11,5 +11,4 @@ struct TMDBMovieImageResponse: Decodable {
     let backdrops: [TMDBImage]
     let id: Int
     let logos: [TMDBImage]
-    let posters: [TMDBImage]
 }
