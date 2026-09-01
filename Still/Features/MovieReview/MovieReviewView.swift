@@ -14,6 +14,11 @@ struct MovieReviewView: View {
 
     @State private var selectedRating = 0.5
     @State private var selectedTasteFit: TasteFitOption = .average
+    @State private var detailedAnswers: [
+        MovieReviewDetailedQuestion: MovieReviewQuestionAnswer
+    ] = [:]
+    @State private var note = ""
+    @State private var isShowingRequiredNoteAlert = false
 
     private func starSymbol(for star: Int) -> String {
         if selectedRating >= Double(star) {
@@ -84,15 +89,30 @@ struct MovieReviewView: View {
                                 )
                             }
                         }
+                        
+                        MovieReviewOptionalNoteView(note: $note)
 
-                        MovieReviewTasteFitView(
-                            selection: $selectedTasteFit
-                        )
+                        MovieReviewTasteFitView(selection: $selectedTasteFit)
+
+                        MovieReviewDetailedQuestionsView(answers: $detailedAnswers)
+                            .padding(.bottom, 30)
+
+                        Button(action: saveReview) {
+                            Text("평가 저장")
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundStyle(StillColors.Content.onAccent)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 54)
+                                .background(StillColors.Accent.strong)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
                 .frame(maxWidth: .infinity)
                 .scrollIndicators(.hidden)
                 .scrollBounceBehavior(.basedOnSize)
+                .scrollDismissesKeyboard(.interactively)
             }
             .padding(.top, 12)
             .padding(.horizontal, 24)
@@ -102,6 +122,31 @@ struct MovieReviewView: View {
                 alignment: .top
             )
         }
+        .alert(
+            "한줄 감상을 입력해 주세요",
+            isPresented: $isShowingRequiredNoteAlert
+        ) {
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text("평가를 저장하려면 한줄 감상을 남겨야 해요.")
+        }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
+    }
+
+    private func saveReview() {
+        guard !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            isShowingRequiredNoteAlert = true
+            return
+        }
+
+        Log.debug(
+            "Movie review:",
+            id,
+            selectedRating,
+            selectedTasteFit.rawValue,
+            detailedAnswers,
+            note
+        )
     }
 }
 
