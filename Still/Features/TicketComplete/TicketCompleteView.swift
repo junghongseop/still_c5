@@ -59,7 +59,7 @@ struct TicketCompleteView: View {
 
     private func completedView(
         backdrop: UIImage,
-        logo: UIImage,
+        logo: UIImage?,
         logoPosition: MomentTicketLogoPosition
     ) -> some View {
         VStack(spacing: 0) {

@@ -40,7 +40,7 @@ struct MomentTicket: View {
     }
 
     private let posterSource: ImageSource
-    private let logoSource: ImageSource
+    private let logoSource: ImageSource?
     private let logoPosition: MomentTicketLogoPosition
     private let logoAspectRatio: CGFloat
 
@@ -57,11 +57,11 @@ struct MomentTicket: View {
 
     init(
         poster: UIImage,
-        logo: UIImage,
+        logo: UIImage?,
         logoPosition: MomentTicketLogoPosition = .bottom
     ) {
         posterSource = .image(poster)
-        logoSource = .image(logo)
+        logoSource = logo.map(ImageSource.image)
         self.logoPosition = logoPosition
         logoAspectRatio = Self.aspectRatio(of: logo)
     }
@@ -88,22 +88,24 @@ struct MomentTicket: View {
                 .scaledToFill()
                 .frame(width: geo.size.width, height: geo.size.height)
                 .overlay {
-                    image(for: logoSource)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(
-                            width: geo.size.width
-                                * MomentTicketLayout.logoWidthRatio,
-                            height: geo.size.height
-                                * MomentTicketLayout.logoHeightRatio(
-                                    for: logoAspectRatio
-                                )
-                        )
-                        .position(
-                            x: geo.size.width / 2,
-                            y: geo.size.height
-                                * logoPosition.verticalCenterRatio
-                        )
+                    if let logoSource {
+                        image(for: logoSource)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(
+                                width: geo.size.width
+                                    * MomentTicketLayout.logoWidthRatio,
+                                height: geo.size.height
+                                    * MomentTicketLayout.logoHeightRatio(
+                                        for: logoAspectRatio
+                                    )
+                            )
+                            .position(
+                                x: geo.size.width / 2,
+                                y: geo.size.height
+                                    * logoPosition.verticalCenterRatio
+                            )
+                    }
                 }
                 .mask {
                     Image("ticketMask")

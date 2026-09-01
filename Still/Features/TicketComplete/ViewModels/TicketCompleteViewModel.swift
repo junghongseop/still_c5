@@ -16,7 +16,7 @@ final class TicketCompleteViewModel {
         case loading
         case loaded(
             backdrop: UIImage,
-            logo: UIImage,
+            logo: UIImage?,
             logoPosition: MomentTicketLogoPosition
         )
         case failed(message: String)
@@ -97,13 +97,21 @@ final class TicketCompleteViewModel {
                 detail: detailResponse
             )
             let backdropData = try await backdropDataTask
-            guard let logo = UIImage(data: logoData) else {
-                throw URLError(.cannotDecodeContentData)
+            let logo: UIImage?
+            if let logoData {
+                guard let decodedLogo = UIImage(data: logoData) else {
+                    throw URLError(.cannotDecodeContentData)
+                }
+                logo = decodedLogo
+            } else {
+                logo = nil
             }
             let analysis = await imageAnalyzer.analyzeBackdrop(
                 imageData: backdropData,
                 targetAspectRatio: MomentTicketLayout.aspectRatio,
-                logoAspectRatio: logo.size.width / logo.size.height,
+                logoAspectRatio: logo.map {
+                    $0.size.width / $0.size.height
+                } ?? 2,
                 logoImageData: logoData
             )
 
@@ -133,7 +141,12 @@ final class TicketCompleteViewModel {
     private func logoData(
         images: TMDBMovieImageResponse,
         detail: TMDBMovieDetailResponse
-    ) async throws -> Data {
+    ) async throws -> Data? {
+        guard !images.logos.isEmpty else {
+            Log.debug("Ticket logo: hidden because logos are empty")
+            return nil
+        }
+
         let preferredLanguage = preferredLogoLanguage(
             for: detail.originalLanguage
         )
