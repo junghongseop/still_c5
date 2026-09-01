@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct MovieReviewView: View {
+    @Environment(AppRouter.self) private var router
+
     let id: Int
     let title: String
     let poster: String?
@@ -106,6 +108,7 @@ struct MovieReviewView: View {
                                 .background(StillColors.Accent.strong)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
+                        .padding(.vertical, 4)
                         .buttonStyle(.plain)
                     }
                 }
@@ -147,6 +150,8 @@ struct MovieReviewView: View {
             detailedAnswers,
             note
         )
+
+        router.push(.ticketComplete(id: id))
     }
 }
 
@@ -156,4 +161,5 @@ struct MovieReviewView: View {
         title: "파묘",
         poster: "/1E5baAaEse26fej7uHcjOgEE2t2.jpg"
     )
+    .environment(AppRouter())
 }
