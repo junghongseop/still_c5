@@ -25,7 +25,6 @@ final class TicketCompleteViewModel {
     private enum TicketLoadError: LocalizedError {
         case missingBackdrop
         case missingLogo
-        case invalidImageURL
 
         var errorDescription: String? {
             switch self {
@@ -34,9 +33,6 @@ final class TicketCompleteViewModel {
 
             case .missingLogo:
                 "사용할 수 있는 영화 로고나 제작사 로고가 없어요."
-
-            case .invalidImageURL:
-                "영화 이미지 주소가 올바르지 않아요."
             }
         }
     }
@@ -83,15 +79,9 @@ final class TicketCompleteViewModel {
                 "productionCompanies=\(detailResponse.productionCompanies.count)"
             )
 
-            guard let backdropPath = imageResponse.backdrops.first?.filePath else {
-                throw TicketLoadError.missingBackdrop
-            }
-
-            guard let backdropURL = originalImageURL(path: backdropPath) else {
-                throw TicketLoadError.invalidImageURL
-            }
-
-            async let backdropDataTask = imageData(from: backdropURL)
+            async let backdropDataTask = randomBackdropData(
+                from: imageResponse.backdrops
+            )
             let logoData = try await logoData(
                 images: imageResponse,
                 detail: detailResponse
@@ -136,6 +126,53 @@ final class TicketCompleteViewModel {
 
     private func originalImageURL(path: String) -> URL? {
         URL(string: "https://image.tmdb.org/t/p/original\(path)")
+    }
+
+    private func randomBackdropData(
+        from backdrops: [TMDBImage]
+    ) async throws -> Data {
+        guard !backdrops.isEmpty else {
+            throw TicketLoadError.missingBackdrop
+        }
+
+        for backdrop in backdrops.shuffled() {
+            try Task.checkCancellation()
+
+            guard let url = originalImageURL(path: backdrop.filePath) else {
+                continue
+            }
+
+            do {
+                let data = try await imageData(from: url)
+                let containsText = await imageAnalyzer
+                    .containsDistractingText(imageData: data)
+
+                guard !containsText else {
+                    Log.debug(
+                        "Rejected backdrop containing text:",
+                        backdrop.filePath
+                    )
+                    continue
+                }
+
+                Log.debug("Selected random backdrop:", backdrop.filePath)
+                return data
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                if Task.isCancelled {
+                    throw CancellationError()
+                }
+
+                Log.debug(
+                    "Failed backdrop candidate:",
+                    backdrop.filePath,
+                    error.localizedDescription
+                )
+            }
+        }
+
+        throw TicketLoadError.missingBackdrop
     }
 
     private func logoData(
