@@ -92,7 +92,7 @@ struct TicketRegistrationInputView: View {
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 24)
-            .padding(.vertical, 12)
+            .padding(.vertical, 4)
             .background(StillColors.Surface.base)
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
