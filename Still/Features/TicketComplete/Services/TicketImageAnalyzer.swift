@@ -68,8 +68,15 @@ actor TicketImageAnalyzer {
     }
 
     private struct LogoAppearance {
-        let averageLuminance: CGFloat
         let averageSaturation: CGFloat
+        let samples: [LogoSample]
+    }
+
+    private struct LogoSample {
+        let normalizedX: CGFloat
+        let normalizedY: CGFloat
+        let luminance: CGFloat
+        let alpha: CGFloat
     }
 
     func analyzeBackdrop(
@@ -157,6 +164,47 @@ actor TicketImageAnalyzer {
             imageData: croppedData,
             logoPosition: logoPosition
         )
+    }
+
+    func containsDistractingText(imageData: Data) -> Bool {
+        guard
+            let image = UIImage(data: imageData),
+            let cgImage = image.cgImage
+        else {
+            return true
+        }
+
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        request.automaticallyDetectsLanguage = true
+        request.usesLanguageCorrection = false
+        request.minimumTextHeight = 0.015
+        configureCPU(for: request)
+
+        do {
+            try VNImageRequestHandler(cgImage: cgImage).perform([request])
+        } catch {
+            return true
+        }
+
+        return request.results?.contains { observation in
+            guard
+                let candidate = observation.topCandidates(1).first,
+                candidate.confidence >= 0.4
+            else {
+                return false
+            }
+
+            let containsLetterOrNumber = candidate.string.unicodeScalars
+                .contains {
+                    CharacterSet.alphanumerics.contains($0)
+                }
+            guard containsLetterOrNumber else { return false }
+
+            let box = observation.boundingBox
+            return box.height >= 0.018
+                && (box.width >= 0.06 || box.height >= 0.04)
+        } ?? false
     }
 
     private func faceRegions(in image: CGImage) -> [DetectedRegion] {
@@ -462,6 +510,14 @@ actor TicketImageAnalyzer {
         content: [DetectedRegion],
         attentionPoint: CGPoint?
     ) -> DetectedRegion {
+        if let crowdedFaceGroup = crowdedGroupFocus(in: faces) {
+            return crowdedFaceGroup
+        }
+
+        if let crowdedHumanGroup = crowdedGroupFocus(in: humans) {
+            return crowdedHumanGroup
+        }
+
         let faceFocus = subjectFocus(
             in: faces,
             attentionPoint: attentionPoint
@@ -523,6 +579,32 @@ actor TicketImageAnalyzer {
         return DetectedRegion(
             boundingBox: CGRect(x: 0.45, y: 0.45, width: 0.1, height: 0.1),
             confidence: 1
+        )
+    }
+
+    private func crowdedGroupFocus(
+        in regions: [DetectedRegion]
+    ) -> DetectedRegion? {
+        guard let dominantSubject = largestRegion(in: regions) else {
+            return nil
+        }
+
+        let dominantScore = regionScore(dominantSubject)
+        let group = regions.filter {
+            regionScore($0) >= dominantScore * 0.2
+        }
+        guard group.count >= 3 else { return nil }
+
+        let groupBox = group.dropFirst().reduce(
+            group[0].boundingBox
+        ) { combinedBox, subject in
+            combinedBox.union(subject.boundingBox)
+        }
+
+        return DetectedRegion(
+            boundingBox: groupBox,
+            confidence: group.map(\.confidence).reduce(0, +)
+                / CGFloat(group.count)
         )
     }
 
@@ -1023,11 +1105,12 @@ actor TicketImageAnalyzer {
 
         guard didDraw else { return nil }
 
-        var weightedLuminance = CGFloat.zero
         var weightedSaturation = CGFloat.zero
         var totalAlpha = CGFloat.zero
+        var samples: [LogoSample] = []
 
-        for index in stride(from: 0, to: pixels.count, by: 4) {
+        for pixelIndex in 0..<(width * height) {
+            let index = pixelIndex * 4
             let alpha = CGFloat(pixels[index + 3]) / 255
             guard alpha > 0.05 else { continue }
 
@@ -1039,15 +1122,26 @@ actor TicketImageAnalyzer {
                 + blue * 0.0722
             let saturation = max(red, green, blue) - min(red, green, blue)
 
-            weightedLuminance += min(luminance, 1) * alpha
             weightedSaturation += min(saturation, 1) * alpha
             totalAlpha += alpha
+            samples.append(
+                LogoSample(
+                    normalizedX: (
+                        CGFloat(pixelIndex % width) + 0.5
+                    ) / CGFloat(width),
+                    normalizedY: (
+                        CGFloat(pixelIndex / width) + 0.5
+                    ) / CGFloat(height),
+                    luminance: min(luminance, 1),
+                    alpha: alpha
+                )
+            )
         }
 
-        guard totalAlpha > 0 else { return nil }
+        guard totalAlpha > 0, !samples.isEmpty else { return nil }
         return LogoAppearance(
-            averageLuminance: weightedLuminance / totalAlpha,
-            averageSaturation: weightedSaturation / totalAlpha
+            averageSaturation: weightedSaturation / totalAlpha,
+            samples: samples
         )
     }
 
@@ -1058,53 +1152,55 @@ actor TicketImageAnalyzer {
     ) -> CGFloat {
         guard
             let logoAppearance,
-            let luminanceMap,
-            let backgroundLuminance = averageLuminance(
-                in: rasterLogoArea,
-                map: luminanceMap
-            )
+            let luminanceMap
         else {
             return 0
         }
 
-        let lighter = max(
-            logoAppearance.averageLuminance,
-            backgroundLuminance
-        )
-        let darker = min(
-            logoAppearance.averageLuminance,
-            backgroundLuminance
-        )
-        let contrastRatio = (lighter + 0.05) / (darker + 0.05)
+        let minimumReadableContrast: CGFloat = 1.45
+        var unreadableWeight = CGFloat.zero
+        var totalWeight = CGFloat.zero
 
-        return 1 / max(contrastRatio, 1)
-    }
+        for sample in logoAppearance.samples {
+            let mapX = min(
+                max(
+                    Int(
+                        (rasterLogoArea.minX
+                            + sample.normalizedX * rasterLogoArea.width)
+                            * CGFloat(luminanceMap.width)
+                    ),
+                    0
+                ),
+                luminanceMap.width - 1
+            )
+            let mapY = min(
+                max(
+                    Int(
+                        (rasterLogoArea.minY
+                            + sample.normalizedY * rasterLogoArea.height)
+                            * CGFloat(luminanceMap.height)
+                    ),
+                    0
+                ),
+                luminanceMap.height - 1
+            )
+            let backgroundLuminance = CGFloat(
+                luminanceMap.pixels[mapY * luminanceMap.width + mapX]
+            ) / 255
+            let lighter = max(sample.luminance, backgroundLuminance)
+            let darker = min(sample.luminance, backgroundLuminance)
+            let contrastRatio = (lighter + 0.05) / (darker + 0.05)
 
-    private func averageLuminance(
-        in area: CGRect,
-        map: LuminanceMap
-    ) -> CGFloat? {
-        let minimumX = max(Int(area.minX * CGFloat(map.width)), 0)
-        let maximumX = min(Int(ceil(area.maxX * CGFloat(map.width))), map.width)
-        let minimumY = max(Int(area.minY * CGFloat(map.height)), 0)
-        let maximumY = min(
-            Int(ceil(area.maxY * CGFloat(map.height))),
-            map.height
-        )
-        guard minimumX < maximumX, minimumY < maximumY else { return nil }
-
-        var total = CGFloat.zero
-        var count = 0
-
-        for y in minimumY..<maximumY {
-            for x in minimumX..<maximumX {
-                total += CGFloat(map.pixels[y * map.width + x]) / 255
-                count += 1
+            if contrastRatio < minimumReadableContrast {
+                unreadableWeight += (
+                    minimumReadableContrast - contrastRatio
+                ) / (minimumReadableContrast - 1) * sample.alpha
             }
+            totalWeight += sample.alpha
         }
 
-        guard count > 0 else { return nil }
-        return total / CGFloat(count)
+        guard totalWeight > 0 else { return 0 }
+        return unreadableWeight / totalWeight
     }
 
     private func luminanceMap(for image: CGImage) -> LuminanceMap? {
