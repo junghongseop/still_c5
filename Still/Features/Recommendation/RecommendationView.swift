@@ -17,9 +17,10 @@ struct RecommendationView: View {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 32) {
-                    RecommendationSection(title: "곧 만나볼 추천 영화")
-                    RecommendationSection(title: "테오님이 좋아할 만한 영화")
                     RecommendationSection(title: "요즘 취향에 어울리는 영화")
+//                    RecommendationSection(title: "테오님이 좋아할 만한 영화")
+                    RecommendationSection(title: "사용자님이 좋아할 만한 영화")
+                    RecommendationSection(title: "곧 만나볼 추천 영화")
                 }
             }
             .scrollIndicators(.hidden)
