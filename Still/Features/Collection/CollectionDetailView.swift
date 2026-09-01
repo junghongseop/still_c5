@@ -65,7 +65,7 @@ struct CollectionDetailView: View {
                     }
                 }
                 .clipped()
-                .blur(radius: 5, opaque: true)
+                .blur(radius: 10, opaque: true)
                 .overlay {
                     StillColors.Surface.scrim
                 }
