@@ -58,6 +58,8 @@ struct TicketCompleteView: View {
         .task(id: review) {
             await loadTicket()
         }
+        .navigationBarBackButtonHidden(true)
+        .interactiveDismissDisabled()
         .alert(
             "티켓을 저장하지 못했어요",
             isPresented: $isShowingSaveError
