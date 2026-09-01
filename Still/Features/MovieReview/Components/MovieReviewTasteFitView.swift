@@ -5,14 +5,6 @@
 
 import SwiftUI
 
-enum TasteFitOption: String, CaseIterable, Identifiable {
-    case different = "별로예요"
-    case average = "보통이에요"
-    case perfect = "완전 좋아요"
-
-    var id: Self { self }
-}
-
 struct MovieReviewTasteFitView: View {
     @Binding var selection: TasteFitOption
 

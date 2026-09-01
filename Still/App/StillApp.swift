@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct StillApp: App {
@@ -16,5 +17,6 @@ struct StillApp: App {
             StillTabView()
                 .environment(router)
         }
+        .modelContainer(for: MovieTicket.self)
     }
 }

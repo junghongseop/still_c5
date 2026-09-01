@@ -10,9 +10,7 @@ import SwiftUI
 struct MovieReviewView: View {
     @Environment(AppRouter.self) private var router
 
-    let id: Int
-    let title: String
-    let poster: String?
+    let context: TicketRegistrationContext
 
     @State private var selectedRating = 0.5
     @State private var selectedTasteFit: TasteFitOption = .average
@@ -21,6 +19,14 @@ struct MovieReviewView: View {
     ] = [:]
     @State private var note = ""
     @State private var isShowingRequiredNoteAlert = false
+
+    private var title: String {
+        context.draft.movieTitle
+    }
+
+    private var poster: String? {
+        context.draft.posterPath
+    }
 
     private func starSymbol(for star: Int) -> String {
         if selectedRating >= Double(star) {
@@ -100,7 +106,7 @@ struct MovieReviewView: View {
                             .padding(.bottom, 30)
 
                         Button(action: saveReview) {
-                            Text("평가 저장")
+                            Text("티켓 만들기")
                                 .font(.system(size: 17, weight: .medium))
                                 .foregroundStyle(StillColors.Content.onAccent)
                                 .frame(maxWidth: .infinity)
@@ -144,22 +150,50 @@ struct MovieReviewView: View {
 
         Log.debug(
             "Movie review:",
-            id,
+            context.draft.movieID,
             selectedRating,
             selectedTasteFit.rawValue,
             detailedAnswers,
             note
         )
 
-        router.push(.ticketComplete(id: id))
+        let answers = MovieReviewDetailedQuestion.allCases.compactMap {
+            question -> MovieReviewAnswerDraft? in
+            guard let answer = detailedAnswers[question] else { return nil }
+            return MovieReviewAnswerDraft(
+                question: question,
+                answer: answer
+            )
+        }
+
+        router.push(
+            .ticketComplete(
+                review: MovieReviewDraft(
+                    registration: context,
+                    rating: selectedRating,
+                    tasteFit: selectedTasteFit,
+                    answers: answers,
+                    note: note.trimmingCharacters(
+                        in: .whitespacesAndNewlines
+                    )
+                )
+            )
+        )
     }
 }
 
 #Preview {
     MovieReviewView(
-        id: 12345,
-        title: "파묘",
-        poster: "/1E5baAaEse26fej7uHcjOgEE2t2.jpg"
+        context: TicketRegistrationContext(
+            place: .theater,
+            draft: TicketRegistrationDraft(
+                movieID: 12345,
+                movieTitle: "파묘",
+                posterPath: "/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
+                theater: "CGV",
+                seat: "H열 9번"
+            )
+        )
     )
     .environment(AppRouter())
 }

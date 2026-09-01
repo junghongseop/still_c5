@@ -12,24 +12,40 @@ import UIKit
 @MainActor
 @Observable
 final class TicketCompleteViewModel {
+    struct GeneratedTicket {
+        let backdrop: UIImage
+        let backdropData: Data
+        let backdropIndex: Int
+        let backdropPath: String
+        let logo: UIImage?
+        let logoData: Data?
+        let logoPosition: MomentTicketLogoPosition
+    }
+
     enum State {
         case loading
-        case loaded(
-            backdrop: UIImage,
-            logo: UIImage?,
-            logoPosition: MomentTicketLogoPosition
-        )
+        case loaded(GeneratedTicket)
         case failed(message: String)
+    }
+
+    private struct SelectedBackdrop {
+        let index: Int
+        let path: String
+        let data: Data
     }
 
     private enum TicketLoadError: LocalizedError {
         case missingBackdrop
+        case missingUnusedBackdrop
         case missingLogo
 
         var errorDescription: String? {
             switch self {
             case .missingBackdrop:
                 "사용할 수 있는 배경 이미지가 없어요."
+
+            case .missingUnusedBackdrop:
+                "이 영화에서 아직 사용하지 않은 배경 이미지가 없어요."
 
             case .missingLogo:
                 "사용할 수 있는 영화 로고나 제작사 로고가 없어요."
@@ -63,7 +79,10 @@ final class TicketCompleteViewModel {
         self.session = session
     }
 
-    func loadTicket(id: Int) async {
+    func loadTicket(
+        id: Int,
+        excludingBackdropPaths: Set<String>
+    ) async {
         state = .loading
 
         do {
@@ -79,14 +98,15 @@ final class TicketCompleteViewModel {
                 "productionCompanies=\(detailResponse.productionCompanies.count)"
             )
 
-            async let backdropDataTask = randomBackdropData(
-                from: imageResponse.backdrops
+            async let selectedBackdropTask = randomBackdrop(
+                from: imageResponse.backdrops,
+                excludingPaths: excludingBackdropPaths
             )
             let logoData = try await logoData(
                 images: imageResponse,
                 detail: detailResponse
             )
-            let backdropData = try await backdropDataTask
+            let selectedBackdrop = try await selectedBackdropTask
             let logo: UIImage?
             if let logoData {
                 guard let decodedLogo = UIImage(data: logoData) else {
@@ -97,7 +117,7 @@ final class TicketCompleteViewModel {
                 logo = nil
             }
             let analysis = await imageAnalyzer.analyzeBackdrop(
-                imageData: backdropData,
+                imageData: selectedBackdrop.data,
                 targetAspectRatio: MomentTicketLayout.aspectRatio,
                 logoAspectRatio: logo.map {
                     $0.size.width / $0.size.height
@@ -112,9 +132,15 @@ final class TicketCompleteViewModel {
             }
 
             state = .loaded(
-                backdrop: backdrop,
-                logo: logo,
-                logoPosition: analysis.logoPosition
+                GeneratedTicket(
+                    backdrop: backdrop,
+                    backdropData: analysis.imageData,
+                    backdropIndex: selectedBackdrop.index,
+                    backdropPath: selectedBackdrop.path,
+                    logo: logo,
+                    logoData: logoData,
+                    logoPosition: analysis.logoPosition
+                )
             )
         } catch is CancellationError {
             return
@@ -124,18 +150,31 @@ final class TicketCompleteViewModel {
         }
     }
 
+    func showFailure(message: String) {
+        state = .failed(message: message)
+    }
+
     private func originalImageURL(path: String) -> URL? {
         URL(string: "https://image.tmdb.org/t/p/original\(path)")
     }
 
-    private func randomBackdropData(
-        from backdrops: [TMDBImage]
-    ) async throws -> Data {
+    private func randomBackdrop(
+        from backdrops: [TMDBImage],
+        excludingPaths: Set<String>
+    ) async throws -> SelectedBackdrop {
         guard !backdrops.isEmpty else {
             throw TicketLoadError.missingBackdrop
         }
 
-        for backdrop in backdrops.shuffled() {
+        let candidates = backdrops.enumerated().filter {
+            !excludingPaths.contains($0.element.filePath)
+        }
+
+        guard !candidates.isEmpty else {
+            throw TicketLoadError.missingUnusedBackdrop
+        }
+
+        for (index, backdrop) in candidates.shuffled() {
             try Task.checkCancellation()
 
             guard let url = originalImageURL(path: backdrop.filePath) else {
@@ -156,7 +195,11 @@ final class TicketCompleteViewModel {
                 }
 
                 Log.debug("Selected random backdrop:", backdrop.filePath)
-                return data
+                return SelectedBackdrop(
+                    index: index,
+                    path: backdrop.filePath,
+                    data: data
+                )
             } catch is CancellationError {
                 throw CancellationError()
             } catch {

@@ -6,13 +6,20 @@
 //
 
 import SwiftUI
+import SwiftData
 import UIKit
 
 struct TicketCompleteView: View {
-    let id: Int
+    @Environment(AppRouter.self) private var router
+    @Environment(\.modelContext) private var modelContext
+
+    let review: MovieReviewDraft
 
     @State private var viewModel = TicketCompleteViewModel()
     @State private var ticketPrintProgress: CGFloat = 0
+    @State private var isSaving = false
+    @State private var saveErrorMessage = ""
+    @State private var isShowingSaveError = false
 
     private func printTicket() async {
         guard ticketPrintProgress == 0 else { return }
@@ -41,26 +48,28 @@ struct TicketCompleteView: View {
             case .loading:
                 TicketLoadingView()
 
-            case let .loaded(backdrop, logo, logoPosition):
-                completedView(
-                    backdrop: backdrop,
-                    logo: logo,
-                    logoPosition: logoPosition
-                )
+            case let .loaded(ticket):
+                completedView(ticket: ticket)
 
             case let .failed(message):
                 loadFailureView(message: message)
             }
         }
-        .task(id: id) {
+        .task(id: review) {
             await loadTicket()
+        }
+        .alert(
+            "티켓을 저장하지 못했어요",
+            isPresented: $isShowingSaveError
+        ) {
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text(saveErrorMessage)
         }
     }
 
     private func completedView(
-        backdrop: UIImage,
-        logo: UIImage?,
-        logoPosition: MomentTicketLogoPosition
+        ticket: TicketCompleteViewModel.GeneratedTicket
     ) -> some View {
         VStack(spacing: 0) {
             GeometryReader { geometry in
@@ -125,7 +134,7 @@ struct TicketCompleteView: View {
                                 StillColors.Content.primary
                             )
 
-                        Text("첫 번째 감상 티켓을 컬렉션에 담았어요")
+                        Text("확인하면 컬렉션에 저장돼요")
                             .font(
                                 .system(
                                     size: 15,
@@ -139,9 +148,9 @@ struct TicketCompleteView: View {
 
                     ZStack {
                         MomentTicket(
-                            poster: backdrop,
-                            logo: logo,
-                            logoPosition: logoPosition
+                            poster: ticket.backdrop,
+                            logo: ticket.logo,
+                            logoPosition: ticket.logoPosition
                         )
                         .frame(
                             width: ticketWidth,
@@ -172,24 +181,35 @@ struct TicketCompleteView: View {
             }
 
             Button {
+                saveTicket(ticket)
             } label: {
-                Text("확인")
-                    .padding(.vertical, 16)
-                    .font(
-                        .system(
-                            size: 17,
-                            weight: .medium
-                        )
-                    )
-                    .foregroundStyle(
-                        StillColors.Content.onAccent
-                    )
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        StillColors.Accent.strong
-                    )
-                    .cornerRadius(12)
+                Group {
+                    if isSaving {
+                        ProgressView()
+                            .tint(StillColors.Content.onAccent)
+                    } else {
+                        Text("확인")
+                            .font(
+                                .system(
+                                    size: 17,
+                                    weight: .medium
+                                )
+                            )
+                    }
+                }
+                .frame(height: 22)
+                .padding(.vertical, 16)
+                .foregroundStyle(
+                    StillColors.Content.onAccent
+                )
+                .frame(maxWidth: .infinity)
+                .background(
+                    StillColors.Accent.strong
+                )
+                .cornerRadius(12)
             }
+            .buttonStyle(.plain)
+            .disabled(isSaving)
             .padding(.horizontal, 24)
             .padding(.bottom, 8)
         }
@@ -230,10 +250,105 @@ struct TicketCompleteView: View {
 
     private func loadTicket() async {
         ticketPrintProgress = 0
-        await viewModel.loadTicket(id: id)
+
+        do {
+            let movieID = review.registration.draft.movieID
+            let descriptor = FetchDescriptor<MovieTicket>(
+                predicate: #Predicate { ticket in
+                    ticket.movieID == movieID
+                }
+            )
+            let savedTickets = try modelContext.fetch(descriptor)
+            let usedBackdropPaths = Set(
+                savedTickets.map(\.backdropPath)
+            )
+
+            await viewModel.loadTicket(
+                id: movieID,
+                excludingBackdropPaths: usedBackdropPaths
+            )
+        } catch {
+            Log.debug(
+                "Failed to load saved backdrop history:",
+                error.localizedDescription
+            )
+            viewModel.showFailure(
+                message: "이전에 사용한 티켓 이미지를 확인하지 못했어요."
+            )
+        }
+    }
+
+    private func saveTicket(
+        _ generatedTicket: TicketCompleteViewModel.GeneratedTicket
+    ) {
+        guard !isSaving else { return }
+        isSaving = true
+
+        let registration = review.registration
+        let draft = registration.draft
+        let ticket = MovieTicket(
+            movieID: draft.movieID,
+            movieTitle: draft.movieTitle,
+            posterPath: draft.posterPath,
+            watchedDate: draft.watchedDate,
+            place: registration.place,
+            theater: draft.theater,
+            seat: draft.seat,
+            platform: draft.platform,
+            rating: review.rating,
+            tasteFit: review.tasteFit,
+            note: review.note,
+            storyAnswer: review.answer(for: .story),
+            actingAnswer: review.answer(for: .acting),
+            directingAnswer: review.answer(for: .directing),
+            visualsAnswer: review.answer(for: .visuals),
+            musicAnswer: review.answer(for: .music),
+            moodAnswer: review.answer(for: .mood),
+            backdropIndex: generatedTicket.backdropIndex,
+            backdropPath: generatedTicket.backdropPath,
+            backdropImageData: generatedTicket.backdropData,
+            logoImageData: generatedTicket.logoData,
+            logoVerticalCenterRatio: Double(
+                generatedTicket.logoPosition.verticalCenterRatio
+            )
+        )
+
+        modelContext.insert(ticket)
+
+        do {
+            try modelContext.save()
+            router.returnHomeAfterTicketSave()
+        } catch {
+            modelContext.delete(ticket)
+            isSaving = false
+            saveErrorMessage = error.localizedDescription
+            isShowingSaveError = true
+            Log.debug(
+                "Ticket save failed:",
+                error.localizedDescription
+            )
+        }
     }
 }
 
 #Preview {
-    TicketCompleteView(id: 969681)
+    TicketCompleteView(
+        review: MovieReviewDraft(
+            registration: TicketRegistrationContext(
+                place: .theater,
+                draft: TicketRegistrationDraft(
+                    movieID: 969681,
+                    movieTitle: "스파이더맨: 브랜드 뉴 데이",
+                    theater: "CGV",
+                    seat: "H열 9번"
+                )
+            ),
+            rating: 4.5,
+            tasteFit: .perfect,
+            answers: [],
+            note: "엔딩 크레딧까지 여운이 오래 남았다."
+        )
+    )
+    .environment(AppRouter())
+    .modelContainer(for: MovieTicket.self, inMemory: true)
 }

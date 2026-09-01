@@ -76,9 +76,10 @@ struct TicketRegistrationInputView: View {
                 Log.debug("Registration draft:", viewModel.draft)
                 router.push(
                     .movieReview(
-                        id: viewModel.movieID,
-                        title: viewModel.movieTitle,
-                        poster: viewModel.posterPath
+                        context: TicketRegistrationContext(
+                            place: viewModel.place,
+                            draft: viewModel.draft
+                        )
                     )
                 )
             } label: {

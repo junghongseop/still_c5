@@ -70,6 +70,13 @@ final class AppRouter {
         }
     }
 
+    func returnHomeAfterTicketSave() {
+        homePath.removeAll()
+        collectionPath.removeAll()
+        recommendationPath.removeAll()
+        selectedTab = .home
+    }
+
     @ViewBuilder
     func destination(for route: AppRoute) -> some View {
         switch route {
@@ -92,11 +99,11 @@ final class AppRouter {
             TicketRegistrationInputView(context: context)
                 .id(context)
 
-        case let .movieReview(id, title, poster):
-            MovieReviewView(id: id, title: title, poster: poster)
+        case let .movieReview(context):
+            MovieReviewView(context: context)
 
-        case let .ticketComplete(id):
-            TicketCompleteView(id: id)
+        case let .ticketComplete(review):
+            TicketCompleteView(review: review)
             
         case .setting:
             SettingView()
@@ -134,7 +141,7 @@ enum AppRoute: Hashable {
     case homeMovieSearch
     case theaterMovieSearch
     case ticketRegistrationInput(TicketRegistrationContext)
-    case movieReview(id: Int, title: String, poster: String?)
-    case ticketComplete(id: Int)
+    case movieReview(context: TicketRegistrationContext)
+    case ticketComplete(review: MovieReviewDraft)
     case setting
 }
