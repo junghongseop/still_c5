@@ -8,11 +8,11 @@
 import Foundation
 
 struct TMDBImage: Decodable {
-    let aspectRatio: Int
+    let aspectRatio: Double
     let height: Int
-    let iso6391: String
+    let iso6391: String?
     let filePath: String
-    let voteAverage: Int
+    let voteAverage: Double
     let voteCount: Int
-    let with: Int
+    let width: Int
 }
