@@ -82,9 +82,6 @@ final class AppRouter {
         case .ticketRegistration:
             TicketRegistrationView()
 
-        case .theaterMethodSelection:
-            MethodSelectionView()
-
         case .homeMovieSearch:
             MovieSearchView(place: .home)
             
@@ -97,6 +94,9 @@ final class AppRouter {
 
         case let .movieReview(id, title, poster):
             MovieReviewView(id: id, title: title, poster: poster)
+
+        case let .ticketComplete(id):
+            TicketCompleteView(id: id)
             
         case .setting:
             SettingView()
@@ -131,10 +131,10 @@ enum AppRoute: Hashable {
     case movieDetail(id: Int)
     case ticketDetail(id: UUID)
     case ticketRegistration
-    case theaterMethodSelection
     case homeMovieSearch
     case theaterMovieSearch
     case ticketRegistrationInput(TicketRegistrationContext)
     case movieReview(id: Int, title: String, poster: String?)
+    case ticketComplete(id: Int)
     case setting
 }
