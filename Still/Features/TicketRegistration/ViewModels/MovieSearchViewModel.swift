@@ -26,6 +26,15 @@ final class MovieSearchViewModel {
     
     private let searchService: TMDBSearchService
     @ObservationIgnored private var activeSearchID: UUID?
+
+    private static let releaseDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .current
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
     
     init() {
         self.searchService = TMDBSearchService()
@@ -60,15 +69,28 @@ final class MovieSearchViewModel {
             let movies = try await searchService.searchMovie(title: query)
             guard activeSearchID == searchID else { return [] }
             
-            let results = movies.map {
-                (
-                    id: $0.id,
-                    originalTitle: $0.originalTitle,
-                    title: $0.title,
-                    releaseDate: $0.releaseDate,
-                    posterPath: $0.posterPath
-                )
-            }
+            let today = Self.releaseDateFormatter.string(from: Date())
+            let results = movies
+                .filter {
+                    guard
+                        let releaseDate = $0.releaseDate,
+                        !releaseDate.isEmpty,
+                        Self.releaseDateFormatter.date(from: releaseDate) != nil
+                    else {
+                        return false
+                    }
+
+                    return releaseDate <= today
+                }
+                .map {
+                    (
+                        id: $0.id,
+                        originalTitle: $0.originalTitle,
+                        title: $0.title,
+                        releaseDate: $0.releaseDate,
+                        posterPath: $0.posterPath
+                    )
+                }
             
             searchResults = results
             didCompleteSearch = true
