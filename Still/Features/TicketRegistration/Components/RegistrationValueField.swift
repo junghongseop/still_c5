@@ -15,6 +15,7 @@ struct RegistrationValueField: View {
                 .font(.system(size: 17, weight: .regular))
                 .foregroundStyle(StillColors.Content.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .lineLimit(1)
         }
     }
 }
