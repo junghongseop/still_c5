@@ -47,7 +47,11 @@ enum TMDBEndpoint {
             return components?.url
             
         case .movieImage(let id):
-            let components = URLComponents(string: "\(baseURL)/movie/\(id)/images")
+            var components = URLComponents(string: "\(baseURL)/movie/\(id)/images")
+
+            components?.queryItems = [
+                URLQueryItem(name: "api_key", value: apiKey)
+            ]
             
             return components?.url
         }
