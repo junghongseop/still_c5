@@ -66,6 +66,22 @@ struct MomentTicket: View {
         logoAspectRatio = Self.aspectRatio(of: logo)
     }
 
+    init?(
+        posterData: Data,
+        logoData: Data?,
+        logoVerticalCenterRatio: Double
+    ) {
+        guard let poster = UIImage(data: posterData) else { return nil }
+
+        self.init(
+            poster: poster,
+            logo: logoData.flatMap(UIImage.init(data:)),
+            logoPosition: MomentTicketLogoPosition(
+                verticalCenterRatio: CGFloat(logoVerticalCenterRatio)
+            )
+        )
+    }
+
     private static func aspectRatio(of image: UIImage?) -> CGFloat {
         guard let image, image.size.height > 0 else { return 2 }
         return image.size.width / image.size.height

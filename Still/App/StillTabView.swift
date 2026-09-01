@@ -5,6 +5,7 @@
 //  Created by 정홍섭 on 8/18/26.
 //
 
+import SwiftData
 import SwiftUI
 
 struct StillTabView: View {
@@ -87,4 +88,5 @@ struct StillTabView: View {
 #Preview {
     StillTabView()
         .environment(AppRouter())
+        .modelContainer(for: MovieTicket.self, inMemory: true)
 }

@@ -83,8 +83,8 @@ final class AppRouter {
         case .movieDetail:
             RecommendationDetailView()
 
-        case .ticketDetail:
-            CollectionDetailView()
+        case let .ticketDetail(id):
+            CollectionDetailView(id: id)
             
         case .ticketRegistration:
             TicketRegistrationView()
