@@ -274,7 +274,10 @@ final class TicketCompleteViewModel {
             do {
                 let data = try await imageData(from: url)
                 let containsText = await imageAnalyzer
-                    .containsDistractingText(imageData: data)
+                    .containsDistractingText(
+                        imageData: data,
+                        targetAspectRatio: MomentTicketLayout.aspectRatio
+                    )
 
                 guard !containsText else {
                     Log.debug(

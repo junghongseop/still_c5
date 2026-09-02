@@ -128,11 +128,17 @@ actor TicketImageAnalyzer {
             content: contentRegions,
             attentionPoint: saliencyResult.attentionPoint
         )
+        let textFreeHorizontalRange = recoverableHorizontalRange(
+            excluding: textRegions,
+            sourceAspectRatio: CGFloat(cgImage.width) / CGFloat(cgImage.height),
+            targetAspectRatio: targetAspectRatio
+        )
 
         guard let cropResult = crop(
             cgImage,
             containing: focusRegion.boundingBox,
-            targetAspectRatio: targetAspectRatio
+            targetAspectRatio: targetAspectRatio,
+            allowedHorizontalRange: textFreeHorizontalRange
         ) else {
             return TicketBackdropAnalysis(
                 imageData: imageData,
@@ -179,7 +185,10 @@ actor TicketImageAnalyzer {
         )
     }
 
-    func containsDistractingText(imageData: Data) -> Bool {
+    func containsDistractingText(
+        imageData: Data,
+        targetAspectRatio: CGFloat
+    ) -> Bool {
         guard
             let image = UIImage(data: imageData),
             let cgImage = image.cgImage
@@ -200,24 +209,42 @@ actor TicketImageAnalyzer {
             return true
         }
 
-        return request.results?.contains { observation in
+        let distractingTextRegions: [CGRect] = request.results?.compactMap {
+            observation -> CGRect? in
             guard
                 let candidate = observation.topCandidates(1).first,
                 candidate.confidence >= 0.4
             else {
-                return false
+                return nil
             }
 
             let containsLetterOrNumber = candidate.string.unicodeScalars
                 .contains {
                     CharacterSet.alphanumerics.contains($0)
                 }
-            guard containsLetterOrNumber else { return false }
+            guard containsLetterOrNumber else { return nil }
 
             let box = observation.boundingBox
-            return box.height >= 0.018
-                && (box.width >= 0.06 || box.height >= 0.04)
-        } ?? false
+            guard
+                box.height >= 0.018,
+                box.width >= 0.06 || box.height >= 0.04
+            else {
+                return nil
+            }
+
+            return box
+        } ?? []
+
+        guard !distractingTextRegions.isEmpty else { return false }
+
+        let sourceAspectRatio = CGFloat(cgImage.width) / CGFloat(cgImage.height)
+        let recoverableRange = recoverableHorizontalRange(
+            excluding: distractingTextRegions,
+            sourceAspectRatio: sourceAspectRatio,
+            targetAspectRatio: targetAspectRatio
+        )
+
+        return recoverableRange == nil
     }
 
     private func faceRegions(in image: CGImage) -> [DetectedRegion] {
@@ -419,6 +446,7 @@ actor TicketImageAnalyzer {
         }
 
         var maximumValue = CGFloat.zero
+        var maximumPoint: CGPoint?
 
         for y in 0..<height {
             for x in 0..<width {
@@ -430,11 +458,14 @@ actor TicketImageAnalyzer {
                     continue
                 }
 
-                maximumValue = max(maximumValue, value)
+                if value > maximumValue {
+                    maximumValue = value
+                    maximumPoint = point
+                }
             }
         }
 
-        guard maximumValue > 0 else {
+        guard maximumValue > 0, let maximumPoint else {
             return AttentionAnalysis(point: nil, heatRegions: [])
         }
 
@@ -450,7 +481,11 @@ actor TicketImageAnalyzer {
                 guard
                     !isInsideText(point),
                     let value = value(x: x, y: y),
-                    value >= threshold
+                    value >= threshold,
+                    hypot(
+                        point.x - maximumPoint.x,
+                        point.y - maximumPoint.y
+                    ) <= 0.2
                 else {
                     continue
                 }
@@ -491,6 +526,7 @@ actor TicketImageAnalyzer {
         request.automaticallyDetectsLanguage = true
         request.usesLanguageCorrection = false
         request.minimumTextHeight = 0.03
+        configureCPU(for: request)
 
         do {
             try VNImageRequestHandler(cgImage: image).perform([request])
@@ -809,7 +845,8 @@ actor TicketImageAnalyzer {
     private func crop(
         _ image: CGImage,
         containing focusRegion: CGRect,
-        targetAspectRatio: CGFloat
+        targetAspectRatio: CGFloat,
+        allowedHorizontalRange: ClosedRange<CGFloat>?
     ) -> CropResult? {
         let width = CGFloat(image.width)
         let height = CGFloat(image.height)
@@ -819,10 +856,23 @@ actor TicketImageAnalyzer {
 
         if sourceAspectRatio > targetAspectRatio {
             let normalizedWidth = targetAspectRatio / sourceAspectRatio
-            let originX = cropOrigin(
+            let focusedOriginX = cropOrigin(
                 containing: focusRegion.minX...focusRegion.maxX,
                 cropLength: normalizedWidth
             )
+            let originX: CGFloat
+            if
+                let allowedHorizontalRange,
+                allowedHorizontalRange.upperBound
+                    - allowedHorizontalRange.lowerBound >= normalizedWidth
+            {
+                originX = min(
+                    max(focusedOriginX, allowedHorizontalRange.lowerBound),
+                    allowedHorizontalRange.upperBound - normalizedWidth
+                )
+            } else {
+                originX = focusedOriginX
+            }
 
             normalizedRect = CGRect(
                 x: originX,
@@ -865,6 +915,39 @@ actor TicketImageAnalyzer {
             image: croppedImage,
             normalizedRect: normalizedRect
         )
+    }
+
+    private func recoverableHorizontalRange(
+        excluding textRegions: [CGRect],
+        sourceAspectRatio: CGFloat,
+        targetAspectRatio: CGFloat
+    ) -> ClosedRange<CGFloat>? {
+        guard sourceAspectRatio > targetAspectRatio else { return nil }
+
+        let prominentTextRegions = textRegions.filter {
+            $0.width >= 0.12 && $0.height >= 0.05
+        }
+        guard let firstRegion = prominentTextRegions.first else { return nil }
+
+        let textBounds = prominentTextRegions.dropFirst().reduce(firstRegion) {
+            $0.union($1)
+        }
+        let requiredWidth = targetAspectRatio / sourceAspectRatio
+        let margin: CGFloat = 0.03
+
+        if textBounds.maxX <= 0.58 {
+            let lowerBound = min(textBounds.maxX + margin, 1)
+            guard 1 - lowerBound >= requiredWidth else { return nil }
+            return lowerBound...1
+        }
+
+        if textBounds.minX >= 0.42 {
+            let upperBound = max(textBounds.minX - margin, 0)
+            guard upperBound >= requiredWidth else { return nil }
+            return 0...upperBound
+        }
+
+        return nil
     }
 
     private func cropOrigin(
