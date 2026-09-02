@@ -12,7 +12,7 @@ struct RegistrationValueField: View {
     var body: some View {
         RegistrationField(title: title) {
             Text(value)
-                .font(.system(size: 17, weight: .regular))
+                .font(.still(.body))
                 .foregroundStyle(StillColors.Content.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)

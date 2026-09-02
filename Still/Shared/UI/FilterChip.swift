@@ -15,7 +15,7 @@ struct FilterChip: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 15))
+                .font(.still(.labelEmphasized))
                 .foregroundStyle(
                     isSelected ? StillColors.Accent.primary : StillColors.Content.secondary
                 )

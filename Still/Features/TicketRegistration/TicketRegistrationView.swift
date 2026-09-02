@@ -39,7 +39,7 @@ struct TicketRegistrationView: View {
                 }
 
                 Text("관람 장소를 선택하면 다음 등록 방식으로 이동해요")
-                    .font(.system(size: 12, weight: .regular))
+                    .font(.still(.caption))
                     .foregroundStyle(StillColors.Content.secondary)
             }
             .padding(.horizontal, 24)

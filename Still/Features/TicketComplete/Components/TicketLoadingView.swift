@@ -16,11 +16,11 @@ struct TicketLoadingView: View {
 
             VStack(spacing: 4) {
                 Text("티켓을 만드는 중")
-                    .font(.system(size: 22, weight: .medium))
+                    .font(.still(.sectionTitle))
                     .foregroundStyle(StillColors.Content.primary)
 
                 Text("영화 이미지와 로고를 불러오고 있어요")
-                    .font(.system(size: 15, weight: .regular))
+                    .font(.still(.label))
                     .foregroundStyle(StillColors.Content.secondary)
             }
         }

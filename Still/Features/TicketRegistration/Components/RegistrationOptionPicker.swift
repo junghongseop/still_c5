@@ -27,7 +27,7 @@ struct RegistrationOptionPicker<Option: RegistrationOption>: View {
             } label: {
                 HStack(spacing: 12) {
                     Text(selection?.rawValue ?? placeholder)
-                        .font(.system(size: 17, weight: .regular))
+                        .font(.still(.body))
                         .foregroundStyle(
                             selection == nil
                                 ? StillColors.Content.teriary

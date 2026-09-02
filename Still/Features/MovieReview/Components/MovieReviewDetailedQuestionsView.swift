@@ -14,11 +14,11 @@ struct MovieReviewDetailedQuestionsView: View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("어떤 점이 좋거나 아쉬웠나요?")
-                    .font(.system(size: 17, weight: .medium))
+                    .font(.still(.headline))
                     .foregroundStyle(StillColors.Content.primary)
 
                 Text("답할수록 다음 추천이 더 정확해져요 · 선택")
-                    .font(.system(size: 15, weight: .regular))
+                    .font(.still(.label))
                     .foregroundStyle(StillColors.Content.secondary)
             }
 
@@ -36,7 +36,7 @@ struct MovieReviewDetailedQuestionsView: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(question.rawValue)
-                .font(.system(size: 17, weight: .medium))
+                .font(.still(.headline))
                 .foregroundStyle(StillColors.Content.primary)
 
             HStack(spacing: 12) {
@@ -59,7 +59,7 @@ struct MovieReviewDetailedQuestionsView: View {
             answers[question] = isSelected ? nil : answer
         } label: {
             Text(answer.rawValue)
-                .font(.system(size: 15, weight: .regular))
+                .font(.still(.labelEmphasized))
                 .foregroundStyle(
                     isSelected
                         ? StillColors.Content.primary

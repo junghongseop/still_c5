@@ -17,8 +17,7 @@ struct RecommendationSection: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .foregroundStyle(StillColors.Content.primary)
-                .bold()
-                .font(.system(size: 24))
+                .font(.still(.sectionTitle))
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {

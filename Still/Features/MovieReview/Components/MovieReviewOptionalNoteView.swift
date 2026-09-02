@@ -13,12 +13,13 @@ struct MovieReviewOptionalNoteView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("한줄로 남겨볼까요? · 필수")
-                .font(.system(size: 17, weight: .medium))
+                .font(.still(.headline))
                 .foregroundStyle(StillColors.Content.primary)
 
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {
                     Text("한줄 감상")
+                        .font(.still(.labelEmphasized))
                         .foregroundStyle(StillColors.Content.secondary)
 
                     Spacer()
@@ -26,7 +27,7 @@ struct MovieReviewOptionalNoteView: View {
                     Text("\(note.count)/\(Self.characterLimit)")
                         .foregroundStyle(StillColors.Content.teriary)
                 }
-                .font(.system(size: 13, weight: .regular))
+                .font(.still(.caption))
 
                 TextField(
                     "",
@@ -37,7 +38,7 @@ struct MovieReviewOptionalNoteView: View {
                     .foregroundStyle(StillColors.Content.teriary),
                     axis: .vertical
                 )
-                .font(.system(size: 17, weight: .regular))
+                .font(.still(.body))
                 .foregroundStyle(StillColors.Content.primary)
                 .textFieldStyle(.plain)
                 .lineLimit(3, reservesSpace: true)
@@ -59,4 +60,3 @@ struct MovieReviewOptionalNoteView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
-

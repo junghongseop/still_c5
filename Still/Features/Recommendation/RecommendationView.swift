@@ -12,8 +12,7 @@ struct RecommendationView: View {
         VStack(alignment: .leading, spacing: 20) {
             Text("추천")
                 .foregroundStyle(StillColors.Content.primary)
-                .bold()
-                .font(.system(size: 44))
+                .font(.still(.display))
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 32) {

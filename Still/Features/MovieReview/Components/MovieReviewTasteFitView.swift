@@ -11,7 +11,7 @@ struct MovieReviewTasteFitView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("내 취향에 얼마나 잘 맞았나요?")
-                .font(.system(size: 17, weight: .medium))
+                .font(.still(.headline))
                 .foregroundStyle(StillColors.Content.primary)
 
             HStack(spacing: 6) {
@@ -30,7 +30,7 @@ struct MovieReviewTasteFitView: View {
             selection = option
         } label: {
             Text(option.rawValue)
-                .font(.system(size: 15, weight: .regular))
+                .font(.still(.labelEmphasized))
                 .foregroundStyle(
                     isSelected
                         ? StillColors.Content.primary

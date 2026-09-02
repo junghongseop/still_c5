@@ -24,7 +24,7 @@ struct MovieSearchField: View {
                 prompt: Text("영화 제목을 입력해 주세요")
                     .foregroundStyle(StillColors.Content.secondary)
             )
-            .font(.system(size: 17, weight: .medium))
+            .font(.still(.bodyEmphasized))
             .foregroundStyle(StillColors.Content.primary)
             .focused($isFocused)
             .submitLabel(.search)

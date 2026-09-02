@@ -21,12 +21,12 @@ struct MovieSearchMessage: View {
             VStack(spacing: 6) {
                 Text(title)
                     .foregroundStyle(StillColors.Content.primary)
-                    .font(.system(size: 17, weight: .medium))
+                    .font(.still(.headline))
                     .multilineTextAlignment(.center)
                 
                 Text(description)
                     .foregroundStyle(StillColors.Content.secondary)
-                    .font(.system(size: 15, weight: .regular))
+                    .font(.still(.label))
                     .multilineTextAlignment(.center)
             }
         }

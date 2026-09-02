@@ -157,22 +157,22 @@ struct CollectionDetailView: View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(ticket.movieTitle)
-                    .font(.system(size: 22, weight: .regular))
+                    .font(.still(.sectionTitle))
                     .foregroundColor(StillColors.Content.primary)
 
                 Text(viewModel.summaryText(for: ticket))
-                    .font(.system(size: 15, weight: .regular))
+                    .font(.still(.label))
                     .foregroundColor(StillColors.Content.secondary)
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("그날의 한마디")
-                    .font(.system(size: 15, weight: .regular))
+                    .font(.still(.labelEmphasized))
                     .foregroundColor(StillColors.Accent.primary)
 
                 ScrollView {
                     Text(ticket.note)
-                        .font(.system(size: 17, weight: .regular))
+                        .font(.still(.body))
                         .foregroundColor(StillColors.Content.primary)
                 }
                 .scrollIndicators(.hidden)

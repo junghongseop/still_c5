@@ -20,7 +20,7 @@ struct RegistrationField<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.system(size: 13, weight: .regular))
+                .font(.still(.label))
                 .foregroundStyle(StillColors.Content.secondary)
 
             content

@@ -10,17 +10,17 @@ struct RegistrationHeader: View {
         case large
         case standard
 
-        var titleSize: CGFloat {
+        var titleTextStyle: StillTypography.Style {
             switch self {
-            case .large: 24
-            case .standard: 22
+            case .large: .sectionTitle
+            case .standard: .title
             }
         }
 
-        var subtitleSize: CGFloat {
+        var subtitleTextStyle: StillTypography.Style {
             switch self {
-            case .large: 16
-            case .standard: 15
+            case .large: .body
+            case .standard: .label
             }
         }
     }
@@ -32,11 +32,11 @@ struct RegistrationHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.system(size: style.titleSize, weight: .regular))
+                .font(.still(style.titleTextStyle))
                 .foregroundStyle(StillColors.Content.primary)
 
             Text(subtitle)
-                .font(.system(size: style.subtitleSize, weight: .regular))
+                .font(.still(style.subtitleTextStyle))
                 .foregroundStyle(StillColors.Content.secondary)
         }
     }

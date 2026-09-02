@@ -125,23 +125,13 @@ struct TicketCompleteView: View {
 
                     VStack(spacing: 4) {
                         Text("티켓이 완성됐어요")
-                            .font(
-                                .system(
-                                    size: 28,
-                                    weight: .regular
-                                )
-                            )
+                            .font(.still(.heroTitle))
                             .foregroundStyle(
                                 StillColors.Content.primary
                             )
 
                         Text("확인하면 컬렉션에 저장돼요")
-                            .font(
-                                .system(
-                                    size: 15,
-                                    weight: .regular
-                                )
-                            )
+                            .font(.still(.label))
                             .foregroundStyle(
                                 StillColors.Content.secondary
                             )
@@ -197,12 +187,7 @@ struct TicketCompleteView: View {
                             .tint(StillColors.Content.onAccent)
                     } else {
                         Text("확인")
-                            .font(
-                                .system(
-                                    size: 17,
-                                    weight: .medium
-                                )
-                            )
+                            .font(.still(.headline))
                     }
                 }
                 .frame(height: 22)
@@ -230,11 +215,11 @@ struct TicketCompleteView: View {
                 .foregroundStyle(StillColors.Accent.primary)
 
             Text("티켓을 만들지 못했어요")
-                .font(.system(size: 20, weight: .medium))
+                .font(.still(.title))
                 .foregroundStyle(StillColors.Content.primary)
 
             Text(message)
-                .font(.system(size: 15, weight: .regular))
+                .font(.still(.label))
                 .foregroundStyle(StillColors.Content.secondary)
                 .multilineTextAlignment(.center)
 
@@ -242,7 +227,7 @@ struct TicketCompleteView: View {
                 router.showHomeAfterTicketFailure()
             } label: {
                 Text("나가기")
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.still(.labelEmphasized))
                     .foregroundStyle(StillColors.Content.onAccent)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)

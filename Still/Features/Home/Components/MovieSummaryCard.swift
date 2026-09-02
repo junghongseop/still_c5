@@ -14,12 +14,12 @@ struct MovieSummaryCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(filter)
-                .font(.system(size: 12, weight: .medium))
+                .font(.still(.captionEmphasized))
                 .foregroundStyle(StillColors.Accent.primary)
                 .frame(height: 17)
             
             Text(content)
-                .font(.system(size: 17, weight: .medium))
+                .font(.still(.headline))
                 .foregroundStyle(StillColors.Content.primary)
                 .frame(height: 24)
         }

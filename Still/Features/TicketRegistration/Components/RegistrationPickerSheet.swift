@@ -34,7 +34,7 @@ struct RegistrationPickerSheet<Content: View>: View {
                 .toolbar {
                     ToolbarItem(placement: .principal) {
                         Text(title)
-                            .font(.system(size: 17, weight: .semibold))
+                            .font(.still(.headline))
                             .foregroundStyle(StillColors.Content.primary)
                     }
 

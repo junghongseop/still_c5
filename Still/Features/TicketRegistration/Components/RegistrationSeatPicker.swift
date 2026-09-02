@@ -22,7 +22,7 @@ struct RegistrationSeatPicker: View {
             } label: {
                 HStack(spacing: 12) {
                     Text(selectedSeatTitle)
-                        .font(.system(size: 17, weight: .regular))
+                        .font(.still(.body))
                         .foregroundStyle(
                             hasSelectedSeat
                                 ? StillColors.Content.primary
@@ -54,11 +54,13 @@ struct RegistrationSeatPicker: View {
                 HStack(spacing: 12) {
                     Picker("좌석 열", selection: $draftRow) {
                         Text("열 선택")
+                            .font(.still(.body))
                             .foregroundStyle(StillColors.Content.primary)
                             .tag(nil as String?)
 
                         ForEach(SeatSelection.availableRows, id: \.self) { row in
                             Text("\(row)열")
+                                .font(.still(.body))
                                 .foregroundStyle(StillColors.Content.primary)
                                 .tag(row as String?)
                         }
@@ -71,11 +73,13 @@ struct RegistrationSeatPicker: View {
 
                     Picker("좌석 번호", selection: $draftNumber) {
                         Text("번호 선택")
+                            .font(.still(.body))
                             .foregroundStyle(StillColors.Content.primary)
                             .tag(nil as Int?)
 
                         ForEach(SeatSelection.availableNumbers, id: \.self) { number in
                             Text("\(number)번")
+                                .font(.still(.body))
                                 .foregroundStyle(StillColors.Content.primary)
                                 .tag(number as Int?)
                         }

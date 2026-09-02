@@ -23,12 +23,12 @@ struct MovieSearchResultRow: View {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(result.title)
-                        .font(.system(size: 17, weight: .medium))
+                        .font(.still(.headline))
                         .foregroundStyle(StillColors.Content.primary)
                         .lineLimit(1)
 
                     Text(metadata)
-                        .font(.system(size: 15, weight: .regular))
+                        .font(.still(.label))
                         .foregroundStyle(StillColors.Content.secondary)
                         .lineLimit(1)
                 }

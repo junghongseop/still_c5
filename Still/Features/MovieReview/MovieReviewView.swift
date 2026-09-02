@@ -31,11 +31,11 @@ struct MovieReviewView: View {
             VStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("감상 평가")
-                        .font(.system(size: 22, weight: .regular))
+                        .font(.still(.sectionTitle))
                         .foregroundStyle(StillColors.Content.primary)
 
                     Text("\(title)를 보고 느낀 점을 알려주세요")
-                        .font(.system(size: 15, weight: .regular))
+                        .font(.still(.label))
                         .foregroundStyle(StillColors.Content.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -58,7 +58,7 @@ struct MovieReviewView: View {
 
                         HStack(spacing: 8) {
                             Text("별점")
-                                .font(.system(size: 17, weight: .medium))
+                                .font(.still(.headline))
                                 .foregroundStyle(StillColors.Content.secondary)
 
                             ForEach(1...5, id: \.self) { star in
@@ -100,7 +100,7 @@ struct MovieReviewView: View {
 
                         Button(action: saveReview) {
                             Text("티켓 만들기")
-                                .font(.system(size: 17, weight: .medium))
+                                .font(.still(.headline))
                                 .foregroundStyle(StillColors.Content.onAccent)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 54)

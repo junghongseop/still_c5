@@ -15,6 +15,7 @@ struct StillApp: App {
     var body: some Scene {
         WindowGroup {
             StillTabView()
+                .font(.still(.body))
                 .environment(router)
         }
         .modelContainer(for: MovieTicket.self)

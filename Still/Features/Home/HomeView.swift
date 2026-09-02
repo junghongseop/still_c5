@@ -18,8 +18,7 @@ struct HomeView: View {
             HStack {
                 Text("홈")
                     .foregroundStyle(StillColors.Content.primary)
-                    .bold()
-                    .font(.system(size: 44))
+                    .font(.still(.display))
                 
                 Spacer()
                 
@@ -55,6 +54,7 @@ struct HomeView: View {
             )
             
             Text("캐릭터")
+                .font(.still(.body))
                 .frame(maxWidth: .infinity)
                 .frame(maxHeight: 406)
                 .background()

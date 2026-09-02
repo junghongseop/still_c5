@@ -23,8 +23,7 @@ struct CollectionView: View {
         VStack(alignment: .leading, spacing: 20) {
             Text("기록")
                 .foregroundStyle(StillColors.Content.primary)
-                .bold()
-                .font(.system(size: 44))
+                .font(.still(.display))
 
             ScrollView(.horizontal) {
                 HStack(spacing: 8) {
@@ -72,7 +71,7 @@ struct CollectionView: View {
 
     private var emptyState: some View {
         Text(viewModel.emptyMessage)
-            .font(.system(size: 15, weight: .regular))
+            .font(.still(.label))
             .foregroundStyle(StillColors.Content.secondary)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

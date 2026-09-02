@@ -36,7 +36,7 @@ struct MovieSearchContent: View {
                         .tint(StillColors.Accent.primary)
                     
                     Text("영화 정보를 불러오는 중")
-                        .font(.system(size: 15, weight: .regular))
+                        .font(.still(.label))
                         .foregroundStyle(StillColors.Content.secondary)
                 }
                 .padding(.top, 72)

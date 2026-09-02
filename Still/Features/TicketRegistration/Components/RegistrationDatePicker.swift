@@ -23,7 +23,7 @@ struct RegistrationDatePicker: View {
                         selection,
                         format: .dateTime.year().month().day()
                     )
-                    .font(.system(size: 17, weight: .regular))
+                    .font(.still(.body))
                     .foregroundStyle(StillColors.Content.primary)
 
                     Spacer()

@@ -14,7 +14,7 @@ struct MovieSearchResults: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("검색 결과 \(results.count)개")
-                .font(.system(size: 15, weight: .regular))
+                .font(.still(.label))
                 .foregroundStyle(StillColors.Content.secondary)
             
             ScrollView {

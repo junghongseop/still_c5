@@ -12,8 +12,7 @@ struct SettingView: View {
         VStack(alignment: .leading, spacing: 20) {
             Text("설정")
                 .foregroundStyle(StillColors.Content.primary)
-                .bold()
-                .font(.system(size: 44))
+                .font(.still(.display))
         }
         .toolbarVisibility(.hidden, for: .tabBar)
         .screenLayoutStyle()

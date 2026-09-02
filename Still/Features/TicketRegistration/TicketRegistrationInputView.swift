@@ -84,7 +84,7 @@ struct TicketRegistrationInputView: View {
                 )
             } label: {
                 Text("입력한 정보로 등록")
-                    .font(.system(size: 17, weight: .medium))
+                    .font(.still(.headline))
                     .foregroundStyle(StillColors.Content.onAccent)
                     .frame(maxWidth: .infinity)
                     .frame(height: 54)
