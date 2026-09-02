@@ -68,48 +68,48 @@ struct CollectionDetailView: View {
                     }
                     .ignoresSafeArea()
 
-                ScrollView {
-                    VStack(spacing: layout.ticketContentSpacing) {
-                        ticketArtwork(ticket)
-                            .frame(width: layout.ticketWidth)
+                VStack(spacing: layout.ticketContentSpacing) {
+                    ticketArtwork(ticket)
+                        .frame(width: layout.ticketWidth)
 
-                        VStack(alignment: .leading, spacing: 18) {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(ticket.movieTitle)
-                                    .font(.system(size: 22, weight: .regular))
-                                    .foregroundColor(StillColors.Content.primary)
+                    VStack(alignment: .leading, spacing: 18) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(ticket.movieTitle)
+                                .font(.system(size: 22, weight: .regular))
+                                .foregroundColor(StillColors.Content.primary)
 
-                                Text(viewModel.summaryText(for: ticket))
-                                    .font(.system(size: 15, weight: .regular))
-                                    .foregroundColor(StillColors.Content.secondary)
-                            }
-
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("그날의 한마디")
-                                    .font(.system(size: 15, weight: .regular))
-                                    .foregroundColor(StillColors.Accent.primary)
-
-                                Text(ticket.note)
-                                    .font(.system(size: 17, weight: .regular))
-                                    .foregroundColor(StillColors.Content.primary)
-                            }
-                            .padding(18)
-                            .frame(maxWidth: .infinity, minHeight: 122, alignment: .topLeading)
-                            .background(StillColors.Surface.raised)
-                            .cornerRadius(22)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 22)
-                                    .inset(by: 0.5)
-                                    .stroke(StillColors.Border.subtle, lineWidth: 1)
-                            )
+                            Text(viewModel.summaryText(for: ticket))
+                                .font(.system(size: 15, weight: .regular))
+                                .foregroundColor(StillColors.Content.secondary)
                         }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("그날의 한마디")
+                                .font(.system(size: 15, weight: .regular))
+                                .foregroundColor(StillColors.Accent.primary)
+
+                            Text(ticket.note)
+                                .font(.system(size: 17, weight: .regular))
+                                .foregroundColor(StillColors.Content.primary)
+                        }
+                        .padding(18)
+                        .frame(maxWidth: .infinity, minHeight: 122, alignment: .topLeading)
+                        .background(StillColors.Surface.raised)
+                        .cornerRadius(22)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 22)
+                                .inset(by: 0.5)
+                                .stroke(StillColors.Border.subtle, lineWidth: 1)
+                        )
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 8)
-                    .frame(maxWidth: .infinity)
                 }
-                .scrollIndicators(.hidden)
-                .scrollBounceBehavior(.basedOnSize)
+                .padding(.horizontal, 24)
+                .padding(.top, 8)
+                .frame(
+                    maxWidth: .infinity,
+                    maxHeight: .infinity,
+                    alignment: .top
+                )
             }
         }
     }
