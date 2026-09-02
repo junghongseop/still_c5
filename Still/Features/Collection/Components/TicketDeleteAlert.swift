@@ -44,6 +44,10 @@ struct TicketDeleteAlert: View {
             }
             .padding(24)
             .frame(maxWidth: 360)
+            .background(
+                Color(uiColor: .systemBackground).opacity(0.82),
+                in: .rect(cornerRadius: 32)
+            )
             .glassEffect(
                 .regular,
                 in: .rect(cornerRadius: 32)
