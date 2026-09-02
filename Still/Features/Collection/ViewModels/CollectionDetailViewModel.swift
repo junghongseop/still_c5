@@ -59,6 +59,8 @@ final class CollectionDetailViewModel {
     var selectedTicketID: UUID
     private(set) var isLoading = true
     private(set) var unavailableDescription = "저장되지 않은 티켓이에요."
+    private(set) var deleteErrorMessage = ""
+    var isShowingDeleteError = false
 
     var selectedPage: TicketPage? {
         pages.first { $0.id == selectedTicketID }
@@ -141,6 +143,39 @@ final class CollectionDetailViewModel {
         )
 
         return "\(date) · \(place) · ★ \(rating)"
+    }
+
+    func deleteSelectedTicket(modelContext: ModelContext) -> Bool {
+        guard
+            let selectedIndex = pages.firstIndex(
+                where: { $0.id == selectedTicketID }
+            )
+        else {
+            return false
+        }
+
+        let ticket = pages[selectedIndex].ticket
+        modelContext.delete(ticket)
+
+        do {
+            try modelContext.save()
+            pages.remove(at: selectedIndex)
+
+            guard !pages.isEmpty else { return true }
+
+            let nextIndex = min(selectedIndex, pages.count - 1)
+            selectedTicketID = pages[nextIndex].id
+            return false
+        } catch {
+            modelContext.rollback()
+            deleteErrorMessage = error.localizedDescription
+            isShowingDeleteError = true
+            Log.debug(
+                "Collection ticket delete failed:",
+                error.localizedDescription
+            )
+            return false
+        }
     }
 
     private func isWatchedEarlier(

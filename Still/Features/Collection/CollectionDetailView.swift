@@ -11,6 +11,7 @@ import UIKit
 
 struct CollectionDetailView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     @State private var viewModel: CollectionDetailViewModel
 
     private let ticketWidth: CGFloat = 210
@@ -22,6 +23,8 @@ struct CollectionDetailView: View {
     }
 
     var body: some View {
+        @Bindable var viewModel = viewModel
+
         Group {
             if let page = viewModel.selectedPage {
                 ticketContent(page)
@@ -42,12 +45,36 @@ struct CollectionDetailView: View {
         .toolbarVisibility(.hidden, for: .tabBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
+                Menu {
+                    Button(
+                        "티켓 삭제",
+                        systemImage: "trash",
+                        role: .destructive
+                    ) {
+                        let didDeleteLastTicket = viewModel
+                            .deleteSelectedTicket(
+                                modelContext: modelContext
+                            )
+
+                        if didDeleteLastTicket {
+                            dismiss()
+                        }
+                    }
                 } label: {
                     Image(systemName: "ellipsis")
                         .foregroundStyle(Color(uiColor: .label))
                 }
+                .disabled(viewModel.selectedPage == nil)
+                .accessibilityLabel("티켓 메뉴")
             }
+        }
+        .alert(
+            "티켓을 삭제하지 못했어요",
+            isPresented: $viewModel.isShowingDeleteError
+        ) {
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text(viewModel.deleteErrorMessage)
         }
     }
 
