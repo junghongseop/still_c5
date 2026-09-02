@@ -66,7 +66,7 @@ struct CollectionDetailView: View {
             isPresented: $viewModel.isShowingDeleteConfirmation
         ) {
             Button("취소", role: .cancel) {}
-            Button("삭제", role: .destructive) {
+            Button("삭제") {
                 deleteSelectedTicket()
             }
             .keyboardShortcut(.defaultAction)
