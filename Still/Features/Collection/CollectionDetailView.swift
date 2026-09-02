@@ -61,16 +61,17 @@ struct CollectionDetailView: View {
                 .accessibilityLabel("티켓 메뉴")
             }
         }
-        .overlay {
-            if viewModel.isShowingDeleteConfirmation {
-                deleteConfirmationAlert
-                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+        .alert(
+            "이 티켓을 삭제할까요?",
+            isPresented: $viewModel.isShowingDeleteConfirmation
+        ) {
+            Button("취소", role: .cancel) {}
+            Button("삭제", role: .destructive) {
+                deleteSelectedTicket()
             }
+        } message: {
+            Text("삭제한 티켓은 복구할 수 없어요.")
         }
-        .animation(
-            .easeInOut(duration: 0.18),
-            value: viewModel.isShowingDeleteConfirmation
-        )
         .alert(
             "티켓을 삭제하지 못했어요",
             isPresented: $viewModel.isShowingDeleteError
@@ -82,7 +83,6 @@ struct CollectionDetailView: View {
     }
 
     private func deleteSelectedTicket() {
-        viewModel.dismissDeleteConfirmation()
         let didDeleteLastTicket = viewModel.deleteSelectedTicket(
             modelContext: modelContext
         )
@@ -90,57 +90,6 @@ struct CollectionDetailView: View {
         if didDeleteLastTicket {
             dismiss()
         }
-    }
-
-    private var deleteConfirmationAlert: some View {
-        ZStack {
-            StillColors.Surface.scrim
-                .ignoresSafeArea()
-
-            VStack(alignment: .leading, spacing: 0) {
-                Text("이 티켓을 삭제할까요?")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(StillColors.Content.primary)
-
-                Text("삭제한 티켓은 복구할 수 없어요.")
-                    .font(.system(size: 15, weight: .regular))
-                    .foregroundStyle(StillColors.Content.secondary)
-                    .padding(.top, 6)
-
-                HStack(spacing: 12) {
-                    Button("취소") {
-                        viewModel.dismissDeleteConfirmation()
-                    }
-                    .foregroundStyle(StillColors.Content.secondary)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(StillColors.Surface.elevated)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-
-                    Button("삭제") {
-                        deleteSelectedTicket()
-                    }
-                    .foregroundStyle(StillColors.Content.primary)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(StillColors.Accent.primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                }
-                .font(.system(size: 17, weight: .medium))
-                .buttonStyle(.plain)
-                .padding(.top, 24)
-            }
-            .padding(24)
-            .frame(maxWidth: 360)
-            .background(StillColors.Surface.raised)
-            .clipShape(RoundedRectangle(cornerRadius: 28))
-            .overlay {
-                RoundedRectangle(cornerRadius: 28)
-                    .stroke(StillColors.Border.subtle, lineWidth: 1)
-            }
-            .padding(.horizontal, 24)
-        }
-        .accessibilityAddTraits(.isModal)
     }
 
     private func ticketContent(
