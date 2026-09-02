@@ -13,6 +13,8 @@ struct CollectionDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel: CollectionDetailViewModel
 
+    private let ticketWidth: CGFloat = 210
+
     init(id: UUID) {
         _viewModel = State(
             initialValue: CollectionDetailViewModel(ticketID: id)
@@ -64,8 +66,21 @@ struct CollectionDetailView: View {
                 .ignoresSafeArea()
 
             VStack {
-                ticketArtwork(ticket)
-                    .frame(width: 210)
+                VStack(spacing: 10) {
+                    TabView(selection: ticketSelection) {
+                        ForEach(viewModel.tickets, id: \.id) { ticket in
+                            ticketArtwork(ticket)
+                                .frame(width: ticketWidth)
+                                .tag(ticket.id)
+                        }
+                    }
+                    .tabViewStyle(.page(indexDisplayMode: .never))
+                    .frame(height: ticketHeight)
+
+                    if viewModel.tickets.count > 1 {
+                        pageIndicator
+                    }
+                }
 
                 Spacer()
 
@@ -108,6 +123,32 @@ struct CollectionDetailView: View {
             .padding(.top, 22)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
+    }
+
+    private var ticketHeight: CGFloat {
+        ticketWidth / MomentTicketLayout.aspectRatio
+    }
+
+    private var ticketSelection: Binding<UUID> {
+        Binding(
+            get: { viewModel.selectedTicketID },
+            set: { viewModel.selectedTicketID = $0 }
+        )
+    }
+
+    private var pageIndicator: some View {
+        HStack(spacing: 6) {
+            ForEach(viewModel.tickets, id: \.id) { ticket in
+                Circle()
+                    .fill(
+                        ticket.id == viewModel.selectedTicketID
+                            ? StillColors.Content.primary
+                            : StillColors.Content.teriary
+                    )
+                    .frame(width: 6, height: 6)
+            }
+        }
+        .accessibilityHidden(true)
     }
 
     @ViewBuilder

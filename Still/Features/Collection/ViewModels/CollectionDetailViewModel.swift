@@ -10,30 +10,58 @@ import SwiftData
 @MainActor
 @Observable
 final class CollectionDetailViewModel {
-    private let ticketID: UUID
+    private let initialTicketID: UUID
 
-    private(set) var ticket: MovieTicket?
+    private(set) var tickets: [MovieTicket] = []
+    var selectedTicketID: UUID
     private(set) var unavailableDescription = "저장되지 않은 티켓이에요."
 
+    var ticket: MovieTicket? {
+        tickets.first { $0.id == selectedTicketID }
+    }
+
     init(ticketID: UUID) {
-        self.ticketID = ticketID
+        initialTicketID = ticketID
+        selectedTicketID = ticketID
     }
 
     func load(modelContext: ModelContext) {
-        let ticketID = ticketID
-        let descriptor = FetchDescriptor<MovieTicket>(
+        let initialTicketID = initialTicketID
+        let initialTicketDescriptor = FetchDescriptor<MovieTicket>(
             predicate: #Predicate { ticket in
-                ticket.id == ticketID
+                ticket.id == initialTicketID
             }
         )
 
         do {
-            ticket = try modelContext.fetch(descriptor).first
-            if ticket == nil {
+            guard
+                let initialTicket = try modelContext.fetch(
+                    initialTicketDescriptor
+                ).first
+            else {
+                tickets = []
                 unavailableDescription = "삭제되었거나 저장되지 않은 티켓이에요."
+                return
+            }
+
+            let movieID = initialTicket.movieID
+            let movieTicketsDescriptor = FetchDescriptor<MovieTicket>(
+                predicate: #Predicate { ticket in
+                    ticket.movieID == movieID
+                },
+                sortBy: [
+                    SortDescriptor(\MovieTicket.createdAt)
+                ]
+            )
+
+            tickets = try modelContext.fetch(movieTicketsDescriptor)
+            if tickets.contains(where: { $0.id == initialTicketID }) {
+                selectedTicketID = initialTicketID
+            } else if let firstTicket = tickets.first {
+                selectedTicketID = firstTicket.id
             }
         } catch {
-            ticket = nil
+            tickets = []
             unavailableDescription = "티켓을 불러오지 못했어요."
             Log.debug(
                 "Collection detail load failed:",
