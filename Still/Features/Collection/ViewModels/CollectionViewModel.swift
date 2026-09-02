@@ -20,8 +20,13 @@ final class CollectionViewModel {
     }
 
     var filteredTickets: [MovieTicket] {
-        guard let selectedYear else { return tickets }
-        return tickets.filter { year(for: $0) == selectedYear }
+        guard let selectedYear else {
+            return groupedTickets
+        }
+
+        return tickets
+            .filter { year(for: $0) == selectedYear }
+            .sorted(by: isCreatedLater)
     }
 
     var emptyMessage: String {
@@ -36,7 +41,7 @@ final class CollectionViewModel {
 
     func load(modelContext: ModelContext) {
         let descriptor = FetchDescriptor<MovieTicket>(
-            sortBy: [SortDescriptor(\MovieTicket.watchedDate, order: .reverse)]
+            sortBy: [SortDescriptor(\MovieTicket.createdAt, order: .reverse)]
         )
 
         do {
@@ -52,4 +57,54 @@ final class CollectionViewModel {
     private func year(for ticket: MovieTicket) -> Int {
         Calendar.current.component(.year, from: ticket.watchedDate)
     }
+
+    private var groupedTickets: [MovieTicket] {
+        Dictionary(grouping: tickets, by: \MovieTicket.movieID)
+            .compactMap { movieID, tickets -> TicketGroup? in
+                guard
+                    let firstTicket = tickets.min(by: isCreatedEarlier),
+                    let latestTicket = tickets.max(by: isCreatedEarlier)
+                else {
+                    return nil
+                }
+
+                return TicketGroup(
+                    movieID: movieID,
+                    representative: firstTicket,
+                    latestCreatedAt: latestTicket.createdAt
+                )
+            }
+            .sorted {
+                if $0.latestCreatedAt == $1.latestCreatedAt {
+                    return $0.movieID > $1.movieID
+                }
+
+                return $0.latestCreatedAt > $1.latestCreatedAt
+            }
+            .map(\.representative)
+    }
+
+    private func isCreatedEarlier(
+        _ lhs: MovieTicket,
+        _ rhs: MovieTicket
+    ) -> Bool {
+        if lhs.createdAt == rhs.createdAt {
+            return lhs.id.uuidString < rhs.id.uuidString
+        }
+
+        return lhs.createdAt < rhs.createdAt
+    }
+
+    private func isCreatedLater(
+        _ lhs: MovieTicket,
+        _ rhs: MovieTicket
+    ) -> Bool {
+        isCreatedEarlier(rhs, lhs)
+    }
+}
+
+private struct TicketGroup {
+    let movieID: Int
+    let representative: MovieTicket
+    let latestCreatedAt: Date
 }

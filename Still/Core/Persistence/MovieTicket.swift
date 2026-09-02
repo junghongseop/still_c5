@@ -9,6 +9,7 @@ import SwiftData
 @Model
 final class MovieTicket {
     @Attribute(.unique) var id: UUID
+    var createdAt: Date = Date()
 
     var movieID: Int
     var movieTitle: String
@@ -37,6 +38,7 @@ final class MovieTicket {
 
     init(
         id: UUID = UUID(),
+        createdAt: Date = Date(),
         movieID: Int,
         movieTitle: String,
         posterPath: String?,
@@ -61,6 +63,7 @@ final class MovieTicket {
         logoVerticalCenterRatio: Double
     ) {
         self.id = id
+        self.createdAt = createdAt
         self.movieID = movieID
         self.movieTitle = movieTitle
         self.posterPath = posterPath
