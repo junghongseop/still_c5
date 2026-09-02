@@ -117,12 +117,12 @@ final class TicketCompleteViewModel {
     func saveTicket(
         review: MovieReviewDraft,
         modelContext: ModelContext
-    ) -> Bool {
+    ) -> UUID? {
         guard
             !isSaving,
             case let .loaded(generatedTicket) = state
         else {
-            return false
+            return nil
         }
 
         isSaving = true
@@ -159,14 +159,14 @@ final class TicketCompleteViewModel {
 
         do {
             try modelContext.save()
-            return true
+            return ticket.id
         } catch {
             modelContext.delete(ticket)
             isSaving = false
             saveErrorMessage = error.localizedDescription
             isShowingSaveError = true
             Log.debug("Ticket save failed:", error.localizedDescription)
-            return false
+            return nil
         }
     }
 

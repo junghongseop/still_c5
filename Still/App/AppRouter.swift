@@ -70,11 +70,11 @@ final class AppRouter {
         }
     }
 
-    func returnHomeAfterTicketSave() {
+    func showCollectionDetailAfterTicketSave(ticketID: UUID) {
         homePath.removeAll()
-        collectionPath.removeAll()
         recommendationPath.removeAll()
-        selectedTab = .home
+        collectionPath = [.ticketDetail(id: ticketID)]
+        selectedTab = .collection
     }
 
     @ViewBuilder

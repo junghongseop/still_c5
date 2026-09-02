@@ -182,11 +182,13 @@ struct TicketCompleteView: View {
             }
 
             Button {
-                if viewModel.saveTicket(
+                if let ticketID = viewModel.saveTicket(
                     review: review,
                     modelContext: modelContext
                 ) {
-                    router.returnHomeAfterTicketSave()
+                    router.showCollectionDetailAfterTicketSave(
+                        ticketID: ticketID
+                    )
                 }
             } label: {
                 Group {
