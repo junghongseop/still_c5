@@ -239,11 +239,9 @@ struct TicketCompleteView: View {
                 .multilineTextAlignment(.center)
 
             Button {
-                Task {
-                    await loadTicket()
-                }
+                router.showHomeAfterTicketFailure()
             } label: {
-                Text("다시 시도")
+                Text("나가기")
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(StillColors.Content.onAccent)
                     .padding(.horizontal, 20)

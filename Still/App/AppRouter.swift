@@ -77,6 +77,11 @@ final class AppRouter {
         selectedTab = .collection
     }
 
+    func showHomeAfterTicketFailure() {
+        homePath.removeAll()
+        selectedTab = .home
+    }
+
     @ViewBuilder
     func destination(for route: AppRoute) -> some View {
         switch route {
