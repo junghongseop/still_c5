@@ -48,13 +48,11 @@ final class CollectionDetailViewModel {
             let movieTicketsDescriptor = FetchDescriptor<MovieTicket>(
                 predicate: #Predicate { ticket in
                     ticket.movieID == movieID
-                },
-                sortBy: [
-                    SortDescriptor(\MovieTicket.createdAt)
-                ]
+                }
             )
 
             tickets = try modelContext.fetch(movieTicketsDescriptor)
+                .sorted(by: isWatchedEarlier)
             if tickets.contains(where: { $0.id == initialTicketID }) {
                 selectedTicketID = initialTicketID
             } else if let firstTicket = tickets.first {
@@ -84,5 +82,20 @@ final class CollectionDetailViewModel {
         )
 
         return "\(date) · \(place) · ★ \(rating)"
+    }
+
+    private func isWatchedEarlier(
+        _ lhs: MovieTicket,
+        _ rhs: MovieTicket
+    ) -> Bool {
+        if lhs.watchedDate != rhs.watchedDate {
+            return lhs.watchedDate < rhs.watchedDate
+        }
+
+        if lhs.createdAt != rhs.createdAt {
+            return lhs.createdAt < rhs.createdAt
+        }
+
+        return lhs.persistentModelID < rhs.persistentModelID
     }
 }

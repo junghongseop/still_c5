@@ -26,7 +26,7 @@ final class CollectionViewModel {
 
         return tickets
             .filter { year(for: $0) == selectedYear }
-            .sorted(by: isCreatedLater)
+            .sorted(by: isWatchedLater)
     }
 
     var emptyMessage: String {
@@ -62,7 +62,7 @@ final class CollectionViewModel {
         Dictionary(grouping: tickets, by: \MovieTicket.movieID)
             .compactMap { movieID, tickets -> TicketGroup? in
                 guard
-                    let firstTicket = tickets.min(by: isCreatedEarlier),
+                    let firstTicket = tickets.min(by: isWatchedEarlier),
                     let latestTicket = tickets.max(by: isCreatedEarlier)
                 else {
                     return nil
@@ -71,11 +71,17 @@ final class CollectionViewModel {
                 return TicketGroup(
                     movieID: movieID,
                     representative: firstTicket,
-                    latestCreatedAt: latestTicket.createdAt
+                    latestCreatedAt: latestTicket.createdAt,
+                    latestWatchedDate: tickets.map(\.watchedDate).max()
+                        ?? latestTicket.watchedDate
                 )
             }
             .sorted {
                 if $0.latestCreatedAt == $1.latestCreatedAt {
+                    if $0.latestWatchedDate != $1.latestWatchedDate {
+                        return $0.latestWatchedDate > $1.latestWatchedDate
+                    }
+
                     return $0.movieID > $1.movieID
                 }
 
@@ -89,17 +95,28 @@ final class CollectionViewModel {
         _ rhs: MovieTicket
     ) -> Bool {
         if lhs.createdAt == rhs.createdAt {
-            return lhs.id.uuidString < rhs.id.uuidString
+            return lhs.persistentModelID < rhs.persistentModelID
         }
 
         return lhs.createdAt < rhs.createdAt
     }
 
-    private func isCreatedLater(
+    private func isWatchedEarlier(
         _ lhs: MovieTicket,
         _ rhs: MovieTicket
     ) -> Bool {
-        isCreatedEarlier(rhs, lhs)
+        if lhs.watchedDate == rhs.watchedDate {
+            return isCreatedEarlier(lhs, rhs)
+        }
+
+        return lhs.watchedDate < rhs.watchedDate
+    }
+
+    private func isWatchedLater(
+        _ lhs: MovieTicket,
+        _ rhs: MovieTicket
+    ) -> Bool {
+        isWatchedEarlier(rhs, lhs)
     }
 }
 
@@ -107,4 +124,5 @@ private struct TicketGroup {
     let movieID: Int
     let representative: MovieTicket
     let latestCreatedAt: Date
+    let latestWatchedDate: Date
 }
