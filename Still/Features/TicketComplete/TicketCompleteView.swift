@@ -17,9 +17,6 @@ struct TicketCompleteView: View {
 
     @State private var viewModel = TicketCompleteViewModel()
     @State private var ticketPrintProgress: CGFloat = 0
-    @State private var isSaving = false
-    @State private var saveErrorMessage = ""
-    @State private var isShowingSaveError = false
 
     private func printTicket() async {
         guard ticketPrintProgress == 0 else { return }
@@ -40,6 +37,8 @@ struct TicketCompleteView: View {
     }
 
     var body: some View {
+        @Bindable var viewModel = viewModel
+
         ZStack {
             StillColors.Surface.base
                 .ignoresSafeArea()
@@ -62,11 +61,11 @@ struct TicketCompleteView: View {
         .interactiveDismissDisabled()
         .alert(
             "티켓을 저장하지 못했어요",
-            isPresented: $isShowingSaveError
+            isPresented: $viewModel.isShowingSaveError
         ) {
             Button("확인", role: .cancel) {}
         } message: {
-            Text(saveErrorMessage)
+            Text(viewModel.saveErrorMessage)
         }
     }
 
@@ -183,10 +182,15 @@ struct TicketCompleteView: View {
             }
 
             Button {
-                saveTicket(ticket)
+                if viewModel.saveTicket(
+                    review: review,
+                    modelContext: modelContext
+                ) {
+                    router.returnHomeAfterTicketSave()
+                }
             } label: {
                 Group {
-                    if isSaving {
+                    if viewModel.isSaving {
                         ProgressView()
                             .tint(StillColors.Content.onAccent)
                     } else {
@@ -211,7 +215,7 @@ struct TicketCompleteView: View {
                 .cornerRadius(12)
             }
             .buttonStyle(.plain)
-            .disabled(isSaving)
+            .disabled(viewModel.isSaving)
             .padding(.horizontal, 24)
             .padding(.bottom, 8)
         }
@@ -252,84 +256,10 @@ struct TicketCompleteView: View {
 
     private func loadTicket() async {
         ticketPrintProgress = 0
-
-        do {
-            let movieID = review.registration.draft.movieID
-            let descriptor = FetchDescriptor<MovieTicket>(
-                predicate: #Predicate { ticket in
-                    ticket.movieID == movieID
-                }
-            )
-            let savedTickets = try modelContext.fetch(descriptor)
-            let usedBackdropPaths = Set(
-                savedTickets.map(\.backdropPath)
-            )
-
-            await viewModel.loadTicket(
-                id: movieID,
-                excludingBackdropPaths: usedBackdropPaths
-            )
-        } catch {
-            Log.debug(
-                "Failed to load saved backdrop history:",
-                error.localizedDescription
-            )
-            viewModel.showFailure(
-                message: "이전에 사용한 티켓 이미지를 확인하지 못했어요."
-            )
-        }
-    }
-
-    private func saveTicket(
-        _ generatedTicket: TicketCompleteViewModel.GeneratedTicket
-    ) {
-        guard !isSaving else { return }
-        isSaving = true
-
-        let registration = review.registration
-        let draft = registration.draft
-        let ticket = MovieTicket(
-            movieID: draft.movieID,
-            movieTitle: draft.movieTitle,
-            posterPath: draft.posterPath,
-            watchedDate: draft.watchedDate,
-            place: registration.place,
-            theater: draft.theater,
-            seat: draft.seat,
-            platform: draft.platform,
-            rating: review.rating,
-            tasteFit: review.tasteFit,
-            note: review.note,
-            storyAnswer: review.answer(for: .story),
-            actingAnswer: review.answer(for: .acting),
-            directingAnswer: review.answer(for: .directing),
-            visualsAnswer: review.answer(for: .visuals),
-            musicAnswer: review.answer(for: .music),
-            moodAnswer: review.answer(for: .mood),
-            backdropIndex: generatedTicket.backdropIndex,
-            backdropPath: generatedTicket.backdropPath,
-            backdropImageData: generatedTicket.backdropData,
-            logoImageData: generatedTicket.logoData,
-            logoVerticalCenterRatio: Double(
-                generatedTicket.logoPosition.verticalCenterRatio
-            )
+        await viewModel.loadTicket(
+            review: review,
+            modelContext: modelContext
         )
-
-        modelContext.insert(ticket)
-
-        do {
-            try modelContext.save()
-            router.returnHomeAfterTicketSave()
-        } catch {
-            modelContext.delete(ticket)
-            isSaving = false
-            saveErrorMessage = error.localizedDescription
-            isShowingSaveError = true
-            Log.debug(
-                "Ticket save failed:",
-                error.localizedDescription
-            )
-        }
     }
 }
 

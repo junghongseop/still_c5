@@ -9,7 +9,6 @@ import SwiftData
 @Model
 final class MovieTicket {
     @Attribute(.unique) var id: UUID
-    var createdAt: Date
 
     var movieID: Int
     var movieTitle: String
@@ -38,7 +37,6 @@ final class MovieTicket {
 
     init(
         id: UUID = UUID(),
-        createdAt: Date = Date(),
         movieID: Int,
         movieTitle: String,
         posterPath: String?,
@@ -63,7 +61,6 @@ final class MovieTicket {
         logoVerticalCenterRatio: Double
     ) {
         self.id = id
-        self.createdAt = createdAt
         self.movieID = movieID
         self.movieTitle = movieTitle
         self.posterPath = posterPath
@@ -90,26 +87,5 @@ final class MovieTicket {
 
     var place: WatchingPlace? {
         WatchingPlace(rawValue: placeRawValue)
-    }
-
-    func answer(
-        for question: MovieReviewDetailedQuestion
-    ) -> MovieReviewQuestionAnswer? {
-        let rawValue: String? = switch question {
-        case .story:
-            storyAnswerRawValue
-        case .acting:
-            actingAnswerRawValue
-        case .directing:
-            directingAnswerRawValue
-        case .visuals:
-            visualsAnswerRawValue
-        case .music:
-            musicAnswerRawValue
-        case .mood:
-            moodAnswerRawValue
-        }
-
-        return rawValue.flatMap(MovieReviewQuestionAnswer.init(rawValue:))
     }
 }

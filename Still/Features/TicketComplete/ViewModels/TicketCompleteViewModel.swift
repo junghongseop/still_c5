@@ -7,6 +7,7 @@
 
 import Foundation
 import Observation
+import SwiftData
 import UIKit
 
 @MainActor
@@ -54,6 +55,9 @@ final class TicketCompleteViewModel {
     }
 
     private(set) var state: State = .loading
+    private(set) var isSaving = false
+    private(set) var saveErrorMessage = ""
+    var isShowingSaveError = false
 
     @ObservationIgnored private let imageService: TMDBImageService
     @ObservationIgnored private let detailService: TMDBDetailService
@@ -80,6 +84,93 @@ final class TicketCompleteViewModel {
     }
 
     func loadTicket(
+        review: MovieReviewDraft,
+        modelContext: ModelContext
+    ) async {
+        let movieID = review.registration.draft.movieID
+
+        do {
+            let descriptor = FetchDescriptor<MovieTicket>(
+                predicate: #Predicate { ticket in
+                    ticket.movieID == movieID
+                }
+            )
+            let savedTickets = try modelContext.fetch(descriptor)
+
+            await loadTicket(
+                id: movieID,
+                excludingBackdropPaths: Set(
+                    savedTickets.map(\.backdropPath)
+                )
+            )
+        } catch {
+            Log.debug(
+                "Failed to load saved backdrop history:",
+                error.localizedDescription
+            )
+            state = .failed(
+                message: "이전에 사용한 티켓 이미지를 확인하지 못했어요."
+            )
+        }
+    }
+
+    func saveTicket(
+        review: MovieReviewDraft,
+        modelContext: ModelContext
+    ) -> Bool {
+        guard
+            !isSaving,
+            case let .loaded(generatedTicket) = state
+        else {
+            return false
+        }
+
+        isSaving = true
+        let registration = review.registration
+        let draft = registration.draft
+        let ticket = MovieTicket(
+            movieID: draft.movieID,
+            movieTitle: draft.movieTitle,
+            posterPath: draft.posterPath,
+            watchedDate: draft.watchedDate,
+            place: registration.place,
+            theater: draft.theater,
+            seat: draft.seat,
+            platform: draft.platform,
+            rating: review.rating,
+            tasteFit: review.tasteFit,
+            note: review.note,
+            storyAnswer: review.answer(for: .story),
+            actingAnswer: review.answer(for: .acting),
+            directingAnswer: review.answer(for: .directing),
+            visualsAnswer: review.answer(for: .visuals),
+            musicAnswer: review.answer(for: .music),
+            moodAnswer: review.answer(for: .mood),
+            backdropIndex: generatedTicket.backdropIndex,
+            backdropPath: generatedTicket.backdropPath,
+            backdropImageData: generatedTicket.backdropData,
+            logoImageData: generatedTicket.logoData,
+            logoVerticalCenterRatio: Double(
+                generatedTicket.logoPosition.verticalCenterRatio
+            )
+        )
+
+        modelContext.insert(ticket)
+
+        do {
+            try modelContext.save()
+            return true
+        } catch {
+            modelContext.delete(ticket)
+            isSaving = false
+            saveErrorMessage = error.localizedDescription
+            isShowingSaveError = true
+            Log.debug("Ticket save failed:", error.localizedDescription)
+            return false
+        }
+    }
+
+    private func loadTicket(
         id: Int,
         excludingBackdropPaths: Set<String>
     ) async {
@@ -148,10 +239,6 @@ final class TicketCompleteViewModel {
             Log.debug("Ticket creation failed:", error.localizedDescription)
             state = .failed(message: error.localizedDescription)
         }
-    }
-
-    func showFailure(message: String) {
-        state = .failed(message: message)
     }
 
     private func originalImageURL(path: String) -> URL? {

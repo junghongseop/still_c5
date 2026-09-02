@@ -10,36 +10,14 @@ import SwiftUI
 
 struct CollectionView: View {
     @Environment(AppRouter.self) private var router
-    @Query(
-        sort: \MovieTicket.watchedDate,
-        order: .reverse
-    ) private var tickets: [MovieTicket]
-
-    @State private var selectedYear: Int?
+    @Environment(\.modelContext) private var modelContext
+    @State private var viewModel = CollectionViewModel()
 
     private let columns = [
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible())
     ]
-
-    private var availableYears: [Int] {
-        Set(
-            tickets.map {
-                Calendar.current.component(.year, from: $0.watchedDate)
-            }
-        )
-        .sorted(by: >)
-    }
-
-    private var filteredTickets: [MovieTicket] {
-        guard let selectedYear else { return tickets }
-
-        return tickets.filter {
-            Calendar.current.component(.year, from: $0.watchedDate)
-                == selectedYear
-        }
-    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -52,29 +30,32 @@ struct CollectionView: View {
                 HStack(spacing: 8) {
                     FilterChip(
                         title: "전체",
-                        isSelected: selectedYear == nil
+                        isSelected: viewModel.selectedYear == nil
                     ) {
-                        selectedYear = nil
+                        viewModel.selectedYear = nil
                     }
 
-                    ForEach(availableYears, id: \.self) { year in
+                    ForEach(viewModel.availableYears, id: \.self) { year in
                         FilterChip(
                             title: String(year),
-                            isSelected: selectedYear == year
+                            isSelected: viewModel.selectedYear == year
                         ) {
-                            selectedYear = year
+                            viewModel.selectedYear = year
                         }
                     }
                 }
             }
             .scrollIndicators(.hidden)
 
-            if filteredTickets.isEmpty {
+            if viewModel.filteredTickets.isEmpty {
                 emptyState
             } else {
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(filteredTickets, id: \.id) { ticket in
+                        ForEach(
+                            viewModel.filteredTickets,
+                            id: \.id
+                        ) { ticket in
                             ticketButton(ticket)
                         }
                     }
@@ -84,15 +65,16 @@ struct CollectionView: View {
             }
         }
         .screenLayoutStyle()
+        .onAppear {
+            viewModel.load(modelContext: modelContext)
+        }
     }
 
     private var emptyState: some View {
-        Text(selectedYear == nil
-             ? "아직 저장한 티켓이 없어요"
-             : "이 해에 저장한 티켓이 없어요")
-        .font(.system(size: 15, weight: .regular))
-        .foregroundStyle(StillColors.Content.secondary)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        Text(viewModel.emptyMessage)
+            .font(.system(size: 15, weight: .regular))
+            .foregroundStyle(StillColors.Content.secondary)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func ticketButton(_ ticket: MovieTicket) -> some View {

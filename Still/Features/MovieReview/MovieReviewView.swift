@@ -11,14 +11,7 @@ struct MovieReviewView: View {
     @Environment(AppRouter.self) private var router
 
     let context: TicketRegistrationContext
-
-    @State private var selectedRating = 0.5
-    @State private var selectedTasteFit: TasteFitOption = .average
-    @State private var detailedAnswers: [
-        MovieReviewDetailedQuestion: MovieReviewQuestionAnswer
-    ] = [:]
-    @State private var note = ""
-    @State private var isShowingRequiredNoteAlert = false
+    @State private var viewModel = MovieReviewViewModel()
 
     private var title: String {
         context.draft.movieTitle
@@ -28,17 +21,9 @@ struct MovieReviewView: View {
         context.draft.posterPath
     }
 
-    private func starSymbol(for star: Int) -> String {
-        if selectedRating >= Double(star) {
-            "star.fill"
-        } else if selectedRating >= Double(star) - 0.5 {
-            "star.leadinghalf.filled"
-        } else {
-            "star"
-        }
-    }
-
     var body: some View {
+        @Bindable var viewModel = viewModel
+
         ZStack {
             StillColors.Surface.base
                 .ignoresSafeArea()
@@ -77,10 +62,13 @@ struct MovieReviewView: View {
                                 .foregroundStyle(StillColors.Content.secondary)
 
                             ForEach(1...5, id: \.self) { star in
-                                Image(systemName: starSymbol(for: star))
+                                Image(
+                                    systemName: viewModel.starSymbol(for: star)
+                                )
                                     .font(.system(size: 24))
                                     .foregroundStyle(
-                                        selectedRating >= Double(star) - 0.5
+                                        viewModel.selectedRating
+                                            >= Double(star) - 0.5
                                         ? StillColors.Accent.primary
                                         : StillColors.Content.teriary
                                     )
@@ -92,17 +80,22 @@ struct MovieReviewView: View {
                                                 let score = value.location.x < 14
                                                 ? 0.5
                                                 : 1.0
-                                                selectedRating = Double(star - 1) + score
+                                                viewModel.selectedRating =
+                                                    Double(star - 1) + score
                                             }
                                 )
                             }
                         }
                         
-                        MovieReviewOptionalNoteView(note: $note)
+                        MovieReviewOptionalNoteView(note: $viewModel.note)
 
-                        MovieReviewTasteFitView(selection: $selectedTasteFit)
+                        MovieReviewTasteFitView(
+                            selection: $viewModel.selectedTasteFit
+                        )
 
-                        MovieReviewDetailedQuestionsView(answers: $detailedAnswers)
+                        MovieReviewDetailedQuestionsView(
+                            answers: $viewModel.detailedAnswers
+                        )
                             .padding(.bottom, 30)
 
                         Button(action: saveReview) {
@@ -133,7 +126,7 @@ struct MovieReviewView: View {
         }
         .alert(
             "한줄 감상을 입력해 주세요",
-            isPresented: $isShowingRequiredNoteAlert
+            isPresented: $viewModel.isShowingRequiredNoteAlert
         ) {
             Button("확인", role: .cancel) {}
         } message: {
@@ -143,42 +136,11 @@ struct MovieReviewView: View {
     }
 
     private func saveReview() {
-        guard !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            isShowingRequiredNoteAlert = true
-            return
-        }
+        guard let review = viewModel.makeReview(
+            registration: context
+        ) else { return }
 
-        Log.debug(
-            "Movie review:",
-            context.draft.movieID,
-            selectedRating,
-            selectedTasteFit.rawValue,
-            detailedAnswers,
-            note
-        )
-
-        let answers = MovieReviewDetailedQuestion.allCases.compactMap {
-            question -> MovieReviewAnswerDraft? in
-            guard let answer = detailedAnswers[question] else { return nil }
-            return MovieReviewAnswerDraft(
-                question: question,
-                answer: answer
-            )
-        }
-
-        router.push(
-            .ticketComplete(
-                review: MovieReviewDraft(
-                    registration: context,
-                    rating: selectedRating,
-                    tasteFit: selectedTasteFit,
-                    answers: answers,
-                    note: note.trimmingCharacters(
-                        in: .whitespacesAndNewlines
-                    )
-                )
-            )
-        )
+        router.push(.ticketComplete(review: review))
     }
 }
 
