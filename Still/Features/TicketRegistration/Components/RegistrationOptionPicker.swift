@@ -39,7 +39,6 @@ struct RegistrationOptionPicker<Option: RegistrationOption>: View {
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(StillColors.Content.secondary)
-                        .frame(width: 32, height: 44)
                 }
                 .frame(maxWidth: .infinity)
                 .contentShape(Rectangle())

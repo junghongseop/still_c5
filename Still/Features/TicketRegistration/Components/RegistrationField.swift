@@ -24,9 +24,8 @@ struct RegistrationField<Content: View>: View {
                 .foregroundStyle(StillColors.Content.secondary)
 
             content
-                .padding(.horizontal, 16)
+                .padding(14)
                 .frame(maxWidth: .infinity)
-                .frame(minHeight: 64)
                 .background(StillColors.Surface.raised)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay {
