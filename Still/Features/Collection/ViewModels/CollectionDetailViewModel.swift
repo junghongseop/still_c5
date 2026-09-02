@@ -60,6 +60,7 @@ final class CollectionDetailViewModel {
     private(set) var isLoading = true
     private(set) var unavailableDescription = "저장되지 않은 티켓이에요."
     private(set) var deleteErrorMessage = ""
+    var isShowingDeleteConfirmation = false
     var isShowingDeleteError = false
 
     var selectedPage: TicketPage? {
@@ -143,6 +144,11 @@ final class CollectionDetailViewModel {
         )
 
         return "\(date) · \(place) · ★ \(rating)"
+    }
+
+    func requestSelectedTicketDeletion() {
+        guard selectedPage != nil else { return }
+        isShowingDeleteConfirmation = true
     }
 
     func deleteSelectedTicket(modelContext: ModelContext) -> Bool {
