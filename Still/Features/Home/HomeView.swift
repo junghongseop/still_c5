@@ -30,7 +30,7 @@ struct HomeView: View {
                         .foregroundStyle(StillColors.Content.primary)
                 }
             }
-            
+
             HStack(spacing: 8) {
                 FilterChip(
                     title: "전체",
@@ -47,17 +47,22 @@ struct HomeView: View {
                     viewModel.selectedYear = viewModel.currentYear
                 }
             }
-            
+
             MovieSummaryCard(
                 filter: viewModel.summaryFilter,
                 content: viewModel.summaryContent
             )
-            
-            Text("캐릭터")
-                .font(.still(.body))
+
+            Spacer()
+
+            Image("timiBase")
+                .resizable()
+                .scaledToFit()
                 .frame(maxWidth: .infinity)
                 .frame(maxHeight: 406)
-                .background()
+                .accessibilityLabel("영화 티켓 캐릭터 티미")
+
+            Spacer()
         }
         .screenLayoutStyle()
         .onAppear {
