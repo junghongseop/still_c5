@@ -61,18 +61,19 @@ struct CollectionDetailView: View {
                 .accessibilityLabel("티켓 메뉴")
             }
         }
-        .alert(
-            "이 티켓을 삭제할까요?",
-            isPresented: $viewModel.isShowingDeleteConfirmation
-        ) {
-            Button("취소", role: .cancel) {}
-            Button("삭제") {
-                deleteSelectedTicket()
+        .overlay {
+            if viewModel.isShowingDeleteConfirmation {
+                TicketDeleteAlert(
+                    onCancel: viewModel.dismissDeleteConfirmation,
+                    onDelete: deleteSelectedTicket
+                )
+                .transition(.opacity.combined(with: .scale(scale: 0.96)))
             }
-            .keyboardShortcut(.defaultAction)
-        } message: {
-            Text("삭제한 티켓은 복구할 수 없어요.")
         }
+        .animation(
+            .easeInOut(duration: 0.18),
+            value: viewModel.isShowingDeleteConfirmation
+        )
         .alert(
             "티켓을 삭제하지 못했어요",
             isPresented: $viewModel.isShowingDeleteError
@@ -84,6 +85,7 @@ struct CollectionDetailView: View {
     }
 
     private func deleteSelectedTicket() {
+        viewModel.dismissDeleteConfirmation()
         let didDeleteLastTicket = viewModel.deleteSelectedTicket(
             modelContext: modelContext
         )

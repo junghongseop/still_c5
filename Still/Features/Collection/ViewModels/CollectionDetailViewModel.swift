@@ -151,6 +151,10 @@ final class CollectionDetailViewModel {
         isShowingDeleteConfirmation = true
     }
 
+    func dismissDeleteConfirmation() {
+        isShowingDeleteConfirmation = false
+    }
+
     func deleteSelectedTicket(modelContext: ModelContext) -> Bool {
         guard
             let selectedIndex = pages.firstIndex(
