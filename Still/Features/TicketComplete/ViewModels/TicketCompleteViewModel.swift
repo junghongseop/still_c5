@@ -35,10 +35,14 @@ final class TicketCompleteViewModel {
         let data: Data
     }
 
+    private struct LogoSource {
+        let path: String
+        let preferencePriority: Int
+    }
+
     private enum TicketLoadError: LocalizedError {
         case missingBackdrop
         case missingUnusedBackdrop
-        case missingLogo
 
         var errorDescription: String? {
             switch self {
@@ -47,9 +51,6 @@ final class TicketCompleteViewModel {
 
             case .missingUnusedBackdrop:
                 "이 영화에서 아직 사용하지 않은 배경 이미지가 없어요."
-
-            case .missingLogo:
-                "사용할 수 있는 영화 로고나 제작사 로고가 없어요."
             }
         }
     }
@@ -152,7 +153,8 @@ final class TicketCompleteViewModel {
             logoImageData: generatedTicket.logoData,
             logoVerticalCenterRatio: Double(
                 generatedTicket.logoPosition.verticalCenterRatio
-            )
+            ),
+            logoScale: Double(generatedTicket.logoPosition.scale)
         )
 
         modelContext.insert(ticket)
@@ -193,11 +195,20 @@ final class TicketCompleteViewModel {
                 from: imageResponse.backdrops,
                 excludingPaths: excludingBackdropPaths
             )
-            let logoData = try await logoData(
+            async let logoCandidatesTask = logoCandidates(
                 images: imageResponse,
                 detail: detailResponse
             )
-            let selectedBackdrop = try await selectedBackdropTask
+            let (selectedBackdrop, logoCandidates) = try await (
+                selectedBackdropTask,
+                logoCandidatesTask
+            )
+            let analysis = await imageAnalyzer.analyzeBackdrop(
+                imageData: selectedBackdrop.data,
+                targetAspectRatio: MomentTicketLayout.aspectRatio,
+                logoCandidates: logoCandidates
+            )
+            let logoData = analysis.logoData
             let logo: UIImage?
             if let logoData {
                 guard let decodedLogo = UIImage(data: logoData) else {
@@ -207,14 +218,6 @@ final class TicketCompleteViewModel {
             } else {
                 logo = nil
             }
-            let analysis = await imageAnalyzer.analyzeBackdrop(
-                imageData: selectedBackdrop.data,
-                targetAspectRatio: MomentTicketLayout.aspectRatio,
-                logoAspectRatio: logo.map {
-                    $0.size.width / $0.size.height
-                } ?? 2,
-                logoImageData: logoData
-            )
 
             guard
                 let backdrop = UIImage(data: analysis.imageData)
@@ -305,53 +308,175 @@ final class TicketCompleteViewModel {
         throw TicketLoadError.missingBackdrop
     }
 
-    private func logoData(
+    private func logoCandidates(
         images: TMDBMovieImageResponse,
         detail: TMDBMovieDetailResponse
-    ) async throws -> Data? {
-        guard !images.logos.isEmpty else {
-            Log.debug("Ticket logo: hidden because logos are empty")
-            return nil
-        }
-
+    ) async -> [TicketLogoCandidate] {
         let preferredLanguage = preferredLogoLanguage(
             for: detail.originalLanguage
         )
-        let logoCandidates = images.logos.filter {
-            $0.iso6391 == preferredLanguage
-        } + images.logos.filter {
-            $0.iso6391 != preferredLanguage
+        let preferredLogos = sortedByQuality(
+            images.logos.filter {
+                $0.iso6391 == preferredLanguage
+            }
+        )
+        let neutralLogos = sortedByQuality(
+            images.logos.filter { $0.iso6391 == nil }
+        )
+        let fallbackLogos = sortedByQuality(images.logos.filter {
+            $0.iso6391 != preferredLanguage && $0.iso6391 != nil
+        })
+        var sources: [LogoSource] = []
+        var usedPaths = Set<String>()
+
+        appendLogoSources(
+            preferredLogos,
+            priority: 0,
+            limit: 4,
+            to: &sources,
+            usedPaths: &usedPaths
+        )
+        appendLogoSources(
+            neutralLogos,
+            priority: preferredLogos.isEmpty ? 0 : 1,
+            limit: 3,
+            to: &sources,
+            usedPaths: &usedPaths
+        )
+        appendLogoSources(
+            fallbackLogos,
+            priority: preferredLogos.isEmpty && neutralLogos.isEmpty ? 0 : 2,
+            limit: max(8 - sources.count, 0),
+            to: &sources,
+            usedPaths: &usedPaths
+        )
+
+        let movieLogos = await downloadLogoCandidates(from: sources)
+        if !movieLogos.isEmpty {
+            Log.debug(
+                "Ticket logo candidates: movie logos",
+                movieLogos.count
+            )
+            return movieLogos
         }
 
-        for candidate in logoCandidates {
-            guard let url = originalImageURL(path: candidate.filePath) else {
+        let companySources = detail.productionCompanies
+            .compactMap(\.logoPath)
+            .prefix(3)
+            .map {
+                LogoSource(path: $0, preferencePriority: 0)
+            }
+        let companyLogos = await downloadLogoCandidates(
+            from: Array(companySources)
+        )
+
+        if companyLogos.isEmpty {
+            Log.debug("Ticket logo: hidden because no logo could be loaded")
+        } else {
+            Log.debug(
+                "Ticket logo candidates: production companies",
+                companyLogos.count
+            )
+        }
+
+        return companyLogos
+    }
+
+    private func sortedByQuality(
+        _ images: [TMDBImage]
+    ) -> [TMDBImage] {
+        images.sorted {
+            if $0.voteCount != $1.voteCount {
+                return $0.voteCount > $1.voteCount
+            }
+
+            if $0.voteAverage != $1.voteAverage {
+                return $0.voteAverage > $1.voteAverage
+            }
+
+            return $0.width * $0.height > $1.width * $1.height
+        }
+    }
+
+    private func appendLogoSources(
+        _ images: [TMDBImage],
+        priority: Int,
+        limit: Int,
+        to sources: inout [LogoSource],
+        usedPaths: inout Set<String>
+    ) {
+        guard limit > 0 else { return }
+        var appendedCount = 0
+
+        for image in images where sources.count < 8 {
+            guard
+                usedPaths.insert(image.filePath).inserted
+            else {
                 continue
             }
 
-            do {
-                let data = try await imageData(from: url)
-                Log.debug(
-                    "Ticket logo: TMDB movie logo",
-                    candidate.iso6391 ?? "language-neutral"
+            sources.append(
+                LogoSource(
+                    path: image.filePath,
+                    preferencePriority: priority
                 )
-                return data
-            } catch {
-                Log.debug("Failed movie logo:", error.localizedDescription)
+            )
+            appendedCount += 1
+
+            if appendedCount >= limit {
+                return
             }
         }
+    }
 
-        guard
-            let productionCompany = detail.productionCompanies.first(
-                where: { $0.logoPath != nil }
-            ),
-            let logoPath = productionCompany.logoPath,
-            let logoURL = originalImageURL(path: logoPath)
-        else {
-            throw TicketLoadError.missingLogo
+    private func downloadLogoCandidates(
+        from sources: [LogoSource]
+    ) async -> [TicketLogoCandidate] {
+        let session = session
+
+        return await withTaskGroup(
+            of: (Int, TicketLogoCandidate)?.self
+        ) { group in
+            for (index, source) in sources.enumerated() {
+                guard let url = logoImageURL(path: source.path) else {
+                    continue
+                }
+                let preferencePriority = source.preferencePriority
+
+                group.addTask(priority: .userInitiated) {
+                    do {
+                        let data = try await Self.imageData(
+                            from: url,
+                            session: session
+                        )
+                        return (
+                            index,
+                            TicketLogoCandidate(
+                                data: data,
+                                preferencePriority: preferencePriority
+                            )
+                        )
+                    } catch {
+                        return nil
+                    }
+                }
+            }
+
+            var downloaded: [(Int, TicketLogoCandidate)] = []
+            for await result in group {
+                if let result {
+                    downloaded.append(result)
+                }
+            }
+
+            return downloaded
+                .sorted { $0.0 < $1.0 }
+                .map(\.1)
         }
+    }
 
-        Log.debug("Ticket logo: production company", productionCompany.name)
-        return try await imageData(from: logoURL)
+    private func logoImageURL(path: String) -> URL? {
+        URL(string: "https://image.tmdb.org/t/p/w500\(path)")
     }
 
     private func preferredLogoLanguage(for originalLanguage: String) -> String {
@@ -368,6 +493,13 @@ final class TicketCompleteViewModel {
     }
 
     private func imageData(from url: URL) async throws -> Data {
+        try await Self.imageData(from: url, session: session)
+    }
+
+    nonisolated private static func imageData(
+        from url: URL,
+        session: URLSession
+    ) async throws -> Data {
         let (data, response) = try await session.data(from: url)
 
         guard

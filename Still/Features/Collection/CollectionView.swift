@@ -84,7 +84,8 @@ struct CollectionView: View {
             if let artwork = MomentTicket(
                 posterData: ticket.backdropImageData,
                 logoData: ticket.logoImageData,
-                logoVerticalCenterRatio: ticket.logoVerticalCenterRatio
+                logoVerticalCenterRatio: ticket.logoVerticalCenterRatio,
+                logoScale: ticket.logoScale
             ) {
                 artwork
             } else {

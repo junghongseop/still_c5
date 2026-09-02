@@ -10,8 +10,14 @@ import ImageIO
 import UIKit
 import Vision
 
+struct TicketLogoCandidate: Sendable {
+    let data: Data
+    let preferencePriority: Int
+}
+
 struct TicketBackdropAnalysis: Sendable {
     let imageData: Data
+    let logoData: Data?
     let logoPosition: MomentTicketLogoPosition
 }
 
@@ -79,11 +85,21 @@ actor TicketImageAnalyzer {
         let alpha: CGFloat
     }
 
+    private struct LogoSelection {
+        let data: Data
+        let position: MomentTicketLogoPosition
+        let score: CGFloat
+    }
+
+    private struct LogoPlacement {
+        let position: MomentTicketLogoPosition
+        let score: CGFloat
+    }
+
     func analyzeBackdrop(
         imageData: Data,
         targetAspectRatio: CGFloat,
-        logoAspectRatio: CGFloat = 2,
-        logoImageData: Data? = nil
+        logoCandidates: [TicketLogoCandidate] = []
     ) -> TicketBackdropAnalysis {
         guard
             let image = UIImage(data: imageData),
@@ -91,6 +107,7 @@ actor TicketImageAnalyzer {
         else {
             return TicketBackdropAnalysis(
                 imageData: imageData,
+                logoData: logoCandidates.first?.data,
                 logoPosition: .bottom
             )
         }
@@ -119,6 +136,7 @@ actor TicketImageAnalyzer {
         ) else {
             return TicketBackdropAnalysis(
                 imageData: imageData,
+                logoData: logoCandidates.first?.data,
                 logoPosition: .bottom
             )
         }
@@ -146,23 +164,18 @@ actor TicketImageAnalyzer {
             .compactMap {
                 region($0, inside: cropResult.normalizedRect)
             }
-        let logoPosition = logoPosition(
+        let logoSelection = bestLogoSelection(
+            from: logoCandidates,
             avoiding: visibleRegions,
             protecting: visibleFaces.map(protectedFaceRegion),
             protectingImportantContent: visibleImportantRegions,
-            logoHeight: min(
-                MomentTicketLayout.logoWidthRatio
-                    * targetAspectRatio
-                    / max(logoAspectRatio, 0.01),
-                MomentTicketLayout.maximumLogoHeightRatio
-            ),
-            logoAppearance: logoImageData.flatMap(logoAppearance),
             in: cropResult.image
         )
 
         return TicketBackdropAnalysis(
             imageData: croppedData,
-            logoPosition: logoPosition
+            logoData: logoSelection?.data,
+            logoPosition: logoSelection?.position ?? .bottom
         )
     }
 
@@ -933,69 +946,133 @@ actor TicketImageAnalyzer {
         )
     }
 
-    private func logoPosition(
+    private func bestLogoSelection(
+        from candidates: [TicketLogoCandidate],
         avoiding regions: [DetectedRegion],
         protecting faces: [DetectedRegion],
         protectingImportantContent importantRegions: [DetectedRegion],
-        logoHeight: CGFloat,
-        logoAppearance: LogoAppearance?,
         in image: CGImage
-    ) -> MomentTicketLogoPosition {
-        guard
-            !regions.isEmpty || !faces.isEmpty || !importantRegions.isEmpty
-        else {
-            return .bottom
+    ) -> LogoSelection? {
+        let luminanceMap = luminanceMap(for: image)
+        var selections: [LogoSelection] = []
+
+        for candidate in candidates {
+            guard
+                let logo = UIImage(data: candidate.data),
+                logo.size.height > 0,
+                let appearance = logoAppearance(from: candidate.data)
+            else {
+                continue
+            }
+
+            let aspectRatio = logo.size.width / logo.size.height
+            let scales: [CGFloat] = aspectRatio < 0.9
+                ? [1, 0.9, 0.8, 0.7, 0.6]
+                : [1]
+
+            for scale in scales {
+                let logoSize = MomentTicketLayout.logoSizeRatios(
+                    for: aspectRatio,
+                    scale: scale
+                )
+                let placement = logoPlacement(
+                    avoiding: regions,
+                    protecting: faces,
+                    protectingImportantContent: importantRegions,
+                    logoSize: logoSize,
+                    logoAppearance: appearance,
+                    luminanceMap: luminanceMap,
+                    scale: scale
+                )
+                let sizePenalty = (1 - scale) * (1 - scale) * 1_200
+                let preferencePenalty = CGFloat(
+                    candidate.preferencePriority
+                ) * 600
+
+                selections.append(
+                    LogoSelection(
+                        data: candidate.data,
+                        position: placement.position,
+                        score: placement.score
+                            + sizePenalty
+                            + preferencePenalty
+                    )
+                )
+            }
         }
+
+        return selections.min { $0.score < $1.score }
+    }
+
+    private func logoPlacement(
+        avoiding regions: [DetectedRegion],
+        protecting faces: [DetectedRegion],
+        protectingImportantContent importantRegions: [DetectedRegion],
+        logoSize: CGSize,
+        logoAppearance: LogoAppearance?,
+        luminanceMap: LuminanceMap?,
+        scale: CGFloat
+    ) -> LogoPlacement {
+        let logoHeight = logoSize.height
 
         let halfLogoHeight = logoHeight / 2
         let edgeInset: CGFloat = 0.05
-        let luminanceMap = luminanceMap(for: image)
         let visionCenterCandidates = stride(
             from: halfLogoHeight + edgeInset,
             through: 1 - halfLogoHeight - edgeInset,
             by: 0.01
         )
-
-        guard let bestVisionCenter = visionCenterCandidates.min(by: {
-            logoPlacementScore(
-                visionCenterY: $0,
-                logoHeight: logoHeight,
-                regions: regions,
-                protectedFaces: faces,
-                importantRegions: importantRegions,
-                logoAppearance: logoAppearance,
-                luminanceMap: luminanceMap
-            ) < logoPlacementScore(
-                visionCenterY: $1,
-                logoHeight: logoHeight,
-                regions: regions,
-                protectedFaces: faces,
-                importantRegions: importantRegions,
-                logoAppearance: logoAppearance,
-                luminanceMap: luminanceMap
+        let scoredCandidates = visionCenterCandidates.map { centerY in
+            (
+                centerY,
+                logoPlacementScore(
+                    visionCenterY: centerY,
+                    logoSize: logoSize,
+                    regions: regions,
+                    protectedFaces: faces,
+                    importantRegions: importantRegions,
+                    logoAppearance: logoAppearance,
+                    luminanceMap: luminanceMap
+                )
             )
-        }) else {
-            return .bottom
         }
 
-        return MomentTicketLogoPosition(
-            verticalCenterRatio: 1 - bestVisionCenter
+        guard let bestCandidate = scoredCandidates.min(by: {
+            $0.1 < $1.1
+        }) else {
+            return LogoPlacement(
+                position: MomentTicketLogoPosition(
+                    verticalCenterRatio: 0.84,
+                    scale: scale
+                ),
+                score: .greatestFiniteMagnitude
+            )
+        }
+
+        return LogoPlacement(
+            position: MomentTicketLogoPosition(
+                verticalCenterRatio: 1 - bestCandidate.0,
+                scale: scale
+            ),
+            score: bestCandidate.1
         )
     }
 
     private func logoPlacementScore(
         visionCenterY: CGFloat,
-        logoHeight: CGFloat,
+        logoSize: CGSize,
         regions: [DetectedRegion],
         protectedFaces: [DetectedRegion],
         importantRegions: [DetectedRegion],
         logoAppearance: LogoAppearance?,
         luminanceMap: LuminanceMap?
     ) -> CGFloat {
+        let logoWidth = logoSize.width
+        let logoHeight = logoSize.height
         let logoArea = CGRect(
-            x: (1 - MomentTicketLayout.logoWidthRatio) / 2,
+            x: (1 - logoWidth) / 2,
             y: visionCenterY - logoHeight / 2,
-            width: MomentTicketLayout.logoWidthRatio,
+            width: logoWidth,
             height: logoHeight
         )
         let protectedFaceOverlap = protectedFaces.reduce(CGFloat.zero) {
@@ -1021,9 +1098,9 @@ actor TicketImageAnalyzer {
             let horizontalCoverage = region.boundingBox
                 .intersection(
                     CGRect(
-                        x: (1 - MomentTicketLayout.logoWidthRatio) / 2,
+                        x: (1 - logoWidth) / 2,
                         y: 0,
-                        width: MomentTicketLayout.logoWidthRatio,
+                        width: logoWidth,
                         height: 1
                     )
                 )
@@ -1038,6 +1115,7 @@ actor TicketImageAnalyzer {
         let complexity = luminanceMap.map {
             visualComplexity(
                 visionCenterY: visionCenterY,
+                logoWidth: logoWidth,
                 logoHeight: logoHeight,
                 in: $0
             )
@@ -1235,12 +1313,19 @@ actor TicketImageAnalyzer {
 
     private func visualComplexity(
         visionCenterY: CGFloat,
+        logoWidth: CGFloat,
         logoHeight: CGFloat,
         in map: LuminanceMap
     ) -> CGFloat {
         let rasterCenterY = 1 - visionCenterY
-        let minimumX = Int(CGFloat(map.width) * 0.06)
-        let maximumX = Int(CGFloat(map.width) * 0.94)
+        let minimumX = max(
+            Int((0.5 - logoWidth / 2) * CGFloat(map.width)),
+            1
+        )
+        let maximumX = min(
+            Int((0.5 + logoWidth / 2) * CGFloat(map.width)),
+            map.width - 1
+        )
         let minimumY = max(
             Int((rasterCenterY - logoHeight / 2) * CGFloat(map.height)),
             1
@@ -1253,7 +1338,7 @@ actor TicketImageAnalyzer {
         var sampleCount = 0
 
         for y in minimumY..<maximumY {
-            for x in max(minimumX, 1)..<maximumX {
+            for x in minimumX..<maximumX {
                 let index = y * map.width + x
                 let horizontalDifference = abs(
                     Int(map.pixels[index]) - Int(map.pixels[index - 1])

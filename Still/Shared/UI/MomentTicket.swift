@@ -13,23 +13,52 @@ enum MomentTicketLayout {
     nonisolated static let logoWidthRatio: CGFloat = 0.88
     nonisolated static let maximumLogoHeightRatio: CGFloat = 0.6
 
-    nonisolated static func logoHeightRatio(
-        for aspectRatio: CGFloat
-    ) -> CGFloat {
-        guard aspectRatio > 0 else { return 0.22 }
+    nonisolated static func logoSizeRatios(
+        for aspectRatio: CGFloat,
+        scale: CGFloat = 1
+    ) -> CGSize {
+        guard aspectRatio > 0 else {
+            return CGSize(
+                width: logoWidthRatio * scale,
+                height: 0.22 * scale
+            )
+        }
 
-        return min(
-            logoWidthRatio * self.aspectRatio / aspectRatio,
-            maximumLogoHeightRatio
+        let maximumWidth = logoWidthRatio * scale
+        let maximumHeight = maximumLogoHeightRatio * scale
+        let heightAtMaximumWidth = maximumWidth
+            * self.aspectRatio
+            / aspectRatio
+
+        guard heightAtMaximumWidth > maximumHeight else {
+            return CGSize(
+                width: maximumWidth,
+                height: heightAtMaximumWidth
+            )
+        }
+
+        return CGSize(
+            width: maximumHeight * aspectRatio / self.aspectRatio,
+            height: maximumHeight
         )
     }
 }
 
 struct MomentTicketLogoPosition: Equatable, Sendable {
     let verticalCenterRatio: CGFloat
+    let scale: CGFloat
+
+    nonisolated init(
+        verticalCenterRatio: CGFloat,
+        scale: CGFloat = 1
+    ) {
+        self.verticalCenterRatio = verticalCenterRatio
+        self.scale = scale
+    }
 
     nonisolated static let bottom = MomentTicketLogoPosition(
-        verticalCenterRatio: 0.84
+        verticalCenterRatio: 0.84,
+        scale: 1
     )
 }
 
@@ -69,7 +98,8 @@ struct MomentTicket: View {
     init?(
         posterData: Data,
         logoData: Data?,
-        logoVerticalCenterRatio: Double
+        logoVerticalCenterRatio: Double,
+        logoScale: Double = 1
     ) {
         guard let poster = UIImage(data: posterData) else { return nil }
 
@@ -77,7 +107,8 @@ struct MomentTicket: View {
             poster: poster,
             logo: logoData.flatMap(UIImage.init(data:)),
             logoPosition: MomentTicketLogoPosition(
-                verticalCenterRatio: CGFloat(logoVerticalCenterRatio)
+                verticalCenterRatio: CGFloat(logoVerticalCenterRatio),
+                scale: CGFloat(logoScale)
             )
         )
     }
@@ -99,6 +130,11 @@ struct MomentTicket: View {
     
     var body: some View {
         GeometryReader { geo in
+            let logoSize = MomentTicketLayout.logoSizeRatios(
+                for: logoAspectRatio,
+                scale: logoPosition.scale
+            )
+
             image(for: posterSource)
                 .resizable()
                 .scaledToFill()
@@ -109,12 +145,8 @@ struct MomentTicket: View {
                             .resizable()
                             .scaledToFit()
                             .frame(
-                                width: geo.size.width
-                                    * MomentTicketLayout.logoWidthRatio,
-                                height: geo.size.height
-                                    * MomentTicketLayout.logoHeightRatio(
-                                        for: logoAspectRatio
-                                    )
+                                width: geo.size.width * logoSize.width,
+                                height: geo.size.height * logoSize.height
                             )
                             .position(
                                 x: geo.size.width / 2,

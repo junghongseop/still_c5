@@ -35,6 +35,7 @@ final class MovieTicket {
     @Attribute(.externalStorage) var backdropImageData: Data
     @Attribute(.externalStorage) var logoImageData: Data?
     var logoVerticalCenterRatio: Double
+    var logoScale: Double = 1
 
     init(
         id: UUID = UUID(),
@@ -60,7 +61,8 @@ final class MovieTicket {
         backdropPath: String,
         backdropImageData: Data,
         logoImageData: Data?,
-        logoVerticalCenterRatio: Double
+        logoVerticalCenterRatio: Double,
+        logoScale: Double = 1
     ) {
         self.id = id
         self.createdAt = createdAt
@@ -86,6 +88,7 @@ final class MovieTicket {
         self.backdropImageData = backdropImageData
         self.logoImageData = logoImageData
         self.logoVerticalCenterRatio = logoVerticalCenterRatio
+        self.logoScale = logoScale
     }
 
     var place: WatchingPlace? {

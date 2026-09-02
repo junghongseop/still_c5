@@ -35,7 +35,8 @@ final class CollectionDetailViewModel {
             logoPosition = MomentTicketLogoPosition(
                 verticalCenterRatio: CGFloat(
                     ticket.logoVerticalCenterRatio
-                )
+                ),
+                scale: CGFloat(ticket.logoScale)
             )
         }
     }
