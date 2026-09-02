@@ -23,8 +23,11 @@ struct CollectionDetailView: View {
 
     var body: some View {
         Group {
-            if let ticket = viewModel.ticket {
-                ticketContent(ticket)
+            if let page = viewModel.selectedPage {
+                ticketContent(page)
+            } else if viewModel.isLoading {
+                ProgressView()
+                    .tint(StillColors.Content.secondary)
             } else {
                 ContentUnavailableView(
                     "티켓을 찾을 수 없어요",
@@ -33,8 +36,8 @@ struct CollectionDetailView: View {
                 )
             }
         }
-        .onAppear {
-            viewModel.load(modelContext: modelContext)
+        .task {
+            await viewModel.load(modelContext: modelContext)
         }
         .toolbarVisibility(.hidden, for: .tabBar)
         .toolbar {
@@ -48,80 +51,98 @@ struct CollectionDetailView: View {
         }
     }
 
-    private func ticketContent(_ ticket: MovieTicket) -> some View {
-        ZStack {
+    private func ticketContent(
+        _ page: CollectionDetailViewModel.TicketPage
+    ) -> some View {
+        let ticket = page.ticket
+
+        return ZStack {
             Color.clear
                 .background {
-                    if let backdrop = UIImage(
-                        data: ticket.backdropImageData
-                    ) {
+                    if let backdrop = page.backdrop {
                         Image(uiImage: backdrop)
                             .resizable()
                             .scaledToFill()
+                            .id(page.id)
+                            .transition(.opacity)
                     }
                 }
                 .clipped()
                 .blur(radius: 5, opaque: true)
                 .overlay {StillColors.Surface.scrim}
                 .ignoresSafeArea()
+                .animation(
+                    .easeInOut(duration: 0.24),
+                    value: viewModel.selectedTicketID
+                )
 
             VStack {
                 VStack(spacing: 10) {
                     TabView(selection: ticketSelection) {
-                        ForEach(viewModel.tickets, id: \.id) { ticket in
-                            ticketArtwork(ticket)
+                        ForEach(viewModel.pages) { page in
+                            ticketArtwork(page)
                                 .frame(width: ticketWidth)
-                                .tag(ticket.id)
+                                .tag(page.id)
                         }
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
                     .frame(height: ticketHeight)
 
-                    if viewModel.tickets.count > 1 {
+                    if viewModel.pages.count > 1 {
                         pageIndicator
                     }
                 }
 
                 Spacer()
 
-                VStack(alignment: .leading, spacing: 18) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(ticket.movieTitle)
-                            .font(.system(size: 22, weight: .regular))
-                            .foregroundColor(StillColors.Content.primary)
-
-                        Text(viewModel.summaryText(for: ticket))
-                            .font(.system(size: 15, weight: .regular))
-                            .foregroundColor(StillColors.Content.secondary)
-                    }
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("그날의 한마디")
-                            .font(.system(size: 15, weight: .regular))
-                            .foregroundColor(StillColors.Accent.primary)
-
-                        ScrollView {
-                            Text(ticket.note)
-                                .font(.system(size: 17, weight: .regular))
-                                .foregroundColor(StillColors.Content.primary)
-                        }
-                        .scrollIndicators(.hidden)
-                        .scrollBounceBehavior(.basedOnSize)
-                    }
-                    .padding(18)
-                    .frame(maxWidth: .infinity, maxHeight: 122, alignment: .topLeading)
-                    .background(StillColors.Surface.raised)
-                    .cornerRadius(22)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 22)
-                            .inset(by: 0.5)
-                            .stroke(StillColors.Border.subtle, lineWidth: 1)
+                ticketDetails(ticket)
+                    .id(ticket.id)
+                    .transition(.opacity)
+                    .animation(
+                        .easeInOut(duration: 0.2),
+                        value: viewModel.selectedTicketID
                     )
-                }
             }
             .padding(.horizontal, 24)
             .padding(.top, 22)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        }
+    }
+
+    private func ticketDetails(_ ticket: MovieTicket) -> some View {
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(ticket.movieTitle)
+                    .font(.system(size: 22, weight: .regular))
+                    .foregroundColor(StillColors.Content.primary)
+
+                Text(viewModel.summaryText(for: ticket))
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundColor(StillColors.Content.secondary)
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("그날의 한마디")
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundColor(StillColors.Accent.primary)
+
+                ScrollView {
+                    Text(ticket.note)
+                        .font(.system(size: 17, weight: .regular))
+                        .foregroundColor(StillColors.Content.primary)
+                }
+                .scrollIndicators(.hidden)
+                .scrollBounceBehavior(.basedOnSize)
+            }
+            .padding(18)
+            .frame(maxWidth: .infinity, maxHeight: 122, alignment: .topLeading)
+            .background(StillColors.Surface.raised)
+            .cornerRadius(22)
+            .overlay(
+                RoundedRectangle(cornerRadius: 22)
+                    .inset(by: 0.5)
+                    .stroke(StillColors.Border.subtle, lineWidth: 1)
+            )
         }
     }
 
@@ -138,27 +159,43 @@ struct CollectionDetailView: View {
 
     private var pageIndicator: some View {
         HStack(spacing: 6) {
-            ForEach(viewModel.tickets, id: \.id) { ticket in
+            ForEach(viewModel.pages) { page in
                 Circle()
                     .fill(
-                        ticket.id == viewModel.selectedTicketID
+                        page.id == viewModel.selectedTicketID
                             ? StillColors.Content.primary
                             : StillColors.Content.teriary
                     )
                     .frame(width: 6, height: 6)
+                    .scaleEffect(
+                        page.id == viewModel.selectedTicketID ? 1 : 0.72
+                    )
+                    .opacity(
+                        page.id == viewModel.selectedTicketID ? 1 : 0.65
+                    )
             }
         }
+        .animation(
+            .interactiveSpring(
+                response: 0.32,
+                dampingFraction: 0.84,
+                blendDuration: 0.12
+            ),
+            value: viewModel.selectedTicketID
+        )
         .accessibilityHidden(true)
     }
 
     @ViewBuilder
-    private func ticketArtwork(_ ticket: MovieTicket) -> some View {
-        if let artwork = MomentTicket(
-            posterData: ticket.backdropImageData,
-            logoData: ticket.logoImageData,
-            logoVerticalCenterRatio: ticket.logoVerticalCenterRatio
-        ) {
-            artwork
+    private func ticketArtwork(
+        _ page: CollectionDetailViewModel.TicketPage
+    ) -> some View {
+        if let backdrop = page.backdrop {
+            MomentTicket(
+                poster: backdrop,
+                logo: page.logo,
+                logoPosition: page.logoPosition
+            )
         } else {
             RoundedRectangle(cornerRadius: 12)
                 .fill(StillColors.Surface.raised)
