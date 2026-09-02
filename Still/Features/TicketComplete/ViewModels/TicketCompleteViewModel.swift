@@ -42,15 +42,11 @@ final class TicketCompleteViewModel {
 
     private enum TicketLoadError: LocalizedError {
         case missingBackdrop
-        case missingUnusedBackdrop
 
         var errorDescription: String? {
             switch self {
             case .missingBackdrop:
                 "사용할 수 있는 배경 이미지가 없어요."
-
-            case .missingUnusedBackdrop:
-                "이 영화에서 아직 사용하지 않은 배경 이미지가 없어요."
             }
         }
     }
@@ -256,15 +252,17 @@ final class TicketCompleteViewModel {
             throw TicketLoadError.missingBackdrop
         }
 
-        let candidates = backdrops.enumerated().filter {
+        let indexedBackdrops = Array(backdrops.enumerated())
+        let unusedCandidates = indexedBackdrops.filter {
             !excludingPaths.contains($0.element.filePath)
         }
-
-        guard !candidates.isEmpty else {
-            throw TicketLoadError.missingUnusedBackdrop
+        let reusedCandidates = indexedBackdrops.filter {
+            excludingPaths.contains($0.element.filePath)
         }
+        let candidates = unusedCandidates.shuffled()
+            + reusedCandidates.shuffled()
 
-        for (index, backdrop) in candidates.shuffled() {
+        for (index, backdrop) in candidates {
             try Task.checkCancellation()
 
             guard let url = originalImageURL(path: backdrop.filePath) else {
@@ -287,7 +285,17 @@ final class TicketCompleteViewModel {
                     continue
                 }
 
-                Log.debug("Selected random backdrop:", backdrop.filePath)
+                if excludingPaths.contains(backdrop.filePath) {
+                    Log.debug(
+                        "Reused backdrop after unused candidates:",
+                        backdrop.filePath
+                    )
+                } else {
+                    Log.debug(
+                        "Selected random backdrop:",
+                        backdrop.filePath
+                    )
+                }
                 return SelectedBackdrop(
                     index: index,
                     path: backdrop.filePath,
