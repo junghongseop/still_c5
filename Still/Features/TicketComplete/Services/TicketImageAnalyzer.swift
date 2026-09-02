@@ -1037,9 +1037,18 @@ actor TicketImageAnalyzer {
         in image: CGImage
     ) -> LogoSelection? {
         let luminanceMap = luminanceMap(for: image)
+        guard let highestLanguagePriority = candidates
+            .map(\.preferencePriority)
+            .min()
+        else {
+            return nil
+        }
+        let languageMatchedCandidates = candidates.filter {
+            $0.preferencePriority == highestLanguagePriority
+        }
         var selections: [LogoSelection] = []
 
-        for candidate in candidates {
+        for candidate in languageMatchedCandidates {
             guard
                 let logo = UIImage(data: candidate.data),
                 logo.size.height > 0,
@@ -1049,7 +1058,10 @@ actor TicketImageAnalyzer {
             }
 
             let aspectRatio = logo.size.width / logo.size.height
-            let scales: [CGFloat] = aspectRatio < 0.9
+            let fullSize = MomentTicketLayout.logoSizeRatios(
+                for: aspectRatio
+            )
+            let scales: [CGFloat] = fullSize.height >= 0.28
                 ? [1, 0.9, 0.8, 0.7, 0.6]
                 : [1]
 
@@ -1068,17 +1080,12 @@ actor TicketImageAnalyzer {
                     scale: scale
                 )
                 let sizePenalty = (1 - scale) * (1 - scale) * 1_200
-                let preferencePenalty = CGFloat(
-                    candidate.preferencePriority
-                ) * 600
 
                 selections.append(
                     LogoSelection(
                         data: candidate.data,
                         position: placement.position,
-                        score: placement.score
-                            + sizePenalty
-                            + preferencePenalty
+                        score: placement.score + sizePenalty
                     )
                 )
             }
