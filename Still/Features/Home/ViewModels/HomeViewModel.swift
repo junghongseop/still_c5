@@ -20,22 +20,36 @@ final class HomeViewModel {
     }
 
     var summaryContent: String {
-        let homeCount = filteredTickets.filter { $0.place == .home }.count
-        let theaterCount = filteredTickets.filter {
+        let visibleTickets = filteredTickets
+
+        guard !visibleTickets.isEmpty else {
+            return "아직 관람한 영화가 없어요"
+        }
+
+        let homeCount = visibleTickets.filter { $0.place == .home }.count
+        let theaterCount = visibleTickets.filter {
             $0.place == .theater
         }.count
 
-        guard homeCount + theaterCount > 0 else {
-            return "아직 기록된 영화가 없어요"
+        guard homeCount + theaterCount == visibleTickets.count else {
+            return "관람한 영화가 \(visibleTickets.count)편 있어요"
+        }
+
+        guard homeCount > 0 else {
+            return "영화관에서만 \(theaterCount)편 봤어요"
+        }
+
+        guard theaterCount > 0 else {
+            return "집에서만 \(homeCount)편 봤어요"
         }
 
         guard homeCount != theaterCount else {
-            return "집과 극장에서 같은 수만큼 봤어요"
+            return "집과 영화관에서 \(homeCount)편씩 봤어요"
         }
 
         return homeCount > theaterCount
             ? "집에서 더 많이 봤어요"
-            : "극장에서 더 많이 봤어요"
+            : "영화관에서 더 많이 봤어요"
     }
 
     func load(modelContext: ModelContext) {

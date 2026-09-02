@@ -38,6 +38,6 @@ struct MovieSummaryCard: View {
 #Preview {
     MovieSummaryCard(
         filter: "전체 기록",
-        content: "올해는 집에서 더 많이 봤어요"
+        content: "집과 영화관에서 4편씩 봤어요"
     )
 }
