@@ -68,12 +68,12 @@ struct StillTabView: View {
                 CollectionView()
             }
             
-            navigationTab(
-                .recommendation,
-                path: $router.recommendationPath
-            ) {
-                RecommendationView()
-            }
+//            navigationTab(
+//                .recommendation,
+//                path: $router.recommendationPath
+//            ) {
+//                RecommendationView()
+//            }
             
             Tab(value: .ticketRegistration, role: .search) {
                 EmptyView()
