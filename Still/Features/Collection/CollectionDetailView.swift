@@ -47,66 +47,70 @@ struct CollectionDetailView: View {
     }
 
     private func ticketContent(_ ticket: MovieTicket) -> some View {
-        ZStack {
-            Color.clear
-                .background {
-                    if let backdrop = UIImage(
-                        data: ticket.backdropImageData
-                    ) {
-                        Image(uiImage: backdrop)
-                            .resizable()
-                            .scaledToFill()
-                    }
-                }
-                .clipped()
-                .blur(radius: 5, opaque: true)
-                .overlay {
-                    StillColors.Surface.scrim
-                }
-                .ignoresSafeArea()
+        GeometryReader { geometry in
+            let layout = CollectionDetailLayout(size: geometry.size)
 
-            ScrollView {
-                VStack(spacing: 95) {
-                    ticketArtwork(ticket)
-                        .frame(maxWidth: 210)
-
-                    VStack(alignment: .leading, spacing: 18) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(ticket.movieTitle)
-                                .font(.system(size: 22, weight: .regular))
-                                .foregroundColor(StillColors.Content.primary)
-
-                            Text(viewModel.summaryText(for: ticket))
-                                .font(.system(size: 15, weight: .regular))
-                                .foregroundColor(StillColors.Content.secondary)
+            ZStack {
+                Color.clear
+                    .background {
+                        if let backdrop = UIImage(
+                            data: ticket.backdropImageData
+                        ) {
+                            Image(uiImage: backdrop)
+                                .resizable()
+                                .scaledToFill()
                         }
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("그날의 한마디")
-                                .font(.system(size: 15, weight: .regular))
-                                .foregroundColor(StillColors.Accent.primary)
-
-                            Text(ticket.note)
-                                .font(.system(size: 17, weight: .regular))
-                                .foregroundColor(StillColors.Content.primary)
-                        }
-                        .padding(18)
-                        .frame(maxWidth: .infinity, minHeight: 122, alignment: .topLeading)
-                        .background(StillColors.Surface.raised)
-                        .cornerRadius(22)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 22)
-                                .inset(by: 0.5)
-                                .stroke(StillColors.Border.subtle, lineWidth: 1)
-                        )
                     }
+                    .clipped()
+                    .blur(radius: 5, opaque: true)
+                    .overlay {
+                        StillColors.Surface.scrim
+                    }
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: layout.ticketContentSpacing) {
+                        ticketArtwork(ticket)
+                            .frame(width: layout.ticketWidth)
+
+                        VStack(alignment: .leading, spacing: 18) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(ticket.movieTitle)
+                                    .font(.system(size: 22, weight: .regular))
+                                    .foregroundColor(StillColors.Content.primary)
+
+                                Text(viewModel.summaryText(for: ticket))
+                                    .font(.system(size: 15, weight: .regular))
+                                    .foregroundColor(StillColors.Content.secondary)
+                            }
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("그날의 한마디")
+                                    .font(.system(size: 15, weight: .regular))
+                                    .foregroundColor(StillColors.Accent.primary)
+
+                                Text(ticket.note)
+                                    .font(.system(size: 17, weight: .regular))
+                                    .foregroundColor(StillColors.Content.primary)
+                            }
+                            .padding(18)
+                            .frame(maxWidth: .infinity, minHeight: 122, alignment: .topLeading)
+                            .background(StillColors.Surface.raised)
+                            .cornerRadius(22)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 22)
+                                    .inset(by: 0.5)
+                                    .stroke(StillColors.Border.subtle, lineWidth: 1)
+                            )
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 8)
+                    .frame(maxWidth: .infinity)
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 8)
-                .frame(maxWidth: .infinity)
+                .scrollIndicators(.hidden)
+                .scrollBounceBehavior(.basedOnSize)
             }
-            .scrollIndicators(.hidden)
-            .scrollBounceBehavior(.basedOnSize)
         }
     }
 
