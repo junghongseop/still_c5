@@ -69,6 +69,7 @@ struct CollectionDetailView: View {
             Button("삭제", role: .destructive) {
                 deleteSelectedTicket()
             }
+            .keyboardShortcut(.defaultAction)
         } message: {
             Text("삭제한 티켓은 복구할 수 없어요.")
         }
