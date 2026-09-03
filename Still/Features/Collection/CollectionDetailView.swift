@@ -46,12 +46,14 @@ struct CollectionDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button(
-                        "티켓 삭제",
-                        systemImage: "trash",
-                        role: .destructive
-                    ) {
+                    Button(role: .destructive) {
                         viewModel.requestSelectedTicketDeletion()
+                    } label: {
+                        Label {
+                            Text("티켓 삭제")
+                        } icon: {
+                            Image(uiImage: deleteMenuIcon)
+                        }
                     }
                 } label: {
                     Image(systemName: "ellipsis")
@@ -75,6 +77,7 @@ struct CollectionDetailView: View {
         } message: {
             Text("삭제한 티켓은 복구할 수 없어요.")
         }
+        .tint(StillColors.Surface.base)
         .alert(
             "티켓을 삭제하지 못했어요",
             isPresented: $viewModel.isShowingDeleteError
@@ -93,6 +96,15 @@ struct CollectionDetailView: View {
         if didDeleteLastTicket {
             dismiss()
         }
+    }
+
+    private var deleteMenuIcon: UIImage {
+        let image = UIImage(systemName: "trash") ?? UIImage()
+
+        return image.withTintColor(
+            UIColor(StillColors.Accent.primary),
+            renderingMode: .alwaysOriginal
+        )
     }
 
     private func ticketContent(
