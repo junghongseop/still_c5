@@ -50,6 +50,7 @@ struct RegistrationDatePicker: View {
                 DatePicker(
                     title,
                     selection: $draftSelection,
+                    in: ...Date.now,
                     displayedComponents: .date
                 )
                 .labelsHidden()
