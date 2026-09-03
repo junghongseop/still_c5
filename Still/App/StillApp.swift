@@ -14,10 +14,41 @@ struct StillApp: App {
     
     var body: some Scene {
         WindowGroup {
-            StillTabView()
+            AppRootView()
                 .font(.still(.body))
                 .environment(router)
         }
         .modelContainer(for: MovieTicket.self)
+    }
+}
+
+private struct AppRootView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isShowingSplash = true
+
+    var body: some View {
+        ZStack {
+            StillTabView()
+                .allowsHitTesting(!isShowingSplash)
+                .accessibilityHidden(isShowingSplash)
+
+            if isShowingSplash {
+                SplashView()
+                    .transition(.opacity)
+                    .zIndex(1)
+            }
+        }
+        .task {
+            let displayDuration: Duration = reduceMotion
+                ? .milliseconds(650)
+                : .milliseconds(1_650)
+
+            try? await Task.sleep(for: displayDuration)
+            guard !Task.isCancelled else { return }
+
+            withAnimation(.easeInOut(duration: reduceMotion ? 0.18 : 0.28)) {
+                isShowingSplash = false
+            }
+        }
     }
 }
