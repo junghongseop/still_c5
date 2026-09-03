@@ -1,0 +1,11 @@
+//
+//  Config.example.xcconfig
+//  Still
+//
+//  Created by 정홍섭 on 8/21/26.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
+
+TMDB_API_KEY = TMDB-API-KEY
