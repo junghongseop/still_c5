@@ -24,6 +24,7 @@ struct MovieSearchView: View {
             .padding(.horizontal, 24)
             .frame(maxHeight: .infinity, alignment: .topLeading)
         }
+        .keyboardDismissible()
     }
 
     private var title: String {

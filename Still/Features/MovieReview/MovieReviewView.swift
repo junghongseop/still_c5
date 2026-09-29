@@ -132,6 +132,7 @@ struct MovieReviewView: View {
         } message: {
             Text("평가를 저장하려면 한줄 감상을 남겨야 해요.")
         }
+        .keyboardDismissible()
         .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 
