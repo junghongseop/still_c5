@@ -19,6 +19,34 @@ extension View {
     func keyboardDismissible() -> some View {
         modifier(KeyboardDismissible())
     }
+
+    func keyboardTextInputArea() -> some View {
+        background(KeyboardTextInputAreaMarker())
+    }
+}
+
+private struct KeyboardTextInputAreaMarker: UIViewRepresentable {
+    func makeUIView(context: Context) -> KeyboardTextInputAreaMarkerView {
+        KeyboardTextInputAreaMarkerView()
+    }
+
+    func updateUIView(
+        _ uiView: KeyboardTextInputAreaMarkerView,
+        context: Context
+    ) {}
+}
+
+private final class KeyboardTextInputAreaMarkerView: UIView {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        isUserInteractionEnabled = false
+        backgroundColor = .clear
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 private struct KeyboardDismissGestureInstaller: UIViewRepresentable {
@@ -84,7 +112,14 @@ private final class KeyboardDismissGestureView: UIView,
         _ gestureRecognizer: UIGestureRecognizer,
         shouldReceive touch: UITouch
     ) -> Bool {
-        !touch.isInsideTextInput
+        guard !touch.isInsideTextInput else { return false }
+        guard let registeredWindow else { return true }
+
+        let location = touch.location(in: registeredWindow)
+        return !registeredWindow.containsKeyboardTextInputArea(
+            at: location,
+            in: registeredWindow
+        )
     }
 
     func gestureRecognizer(
@@ -96,6 +131,24 @@ private final class KeyboardDismissGestureView: UIView,
 
     @objc private func dismissKeyboard() {
         registeredWindow?.endEditing(true)
+    }
+}
+
+private extension UIView {
+    func containsKeyboardTextInputArea(
+        at location: CGPoint,
+        in window: UIWindow
+    ) -> Bool {
+        if self is KeyboardTextInputAreaMarkerView,
+           !isHidden,
+           alpha > 0.01,
+           bounds.contains(convert(location, from: window)) {
+            return true
+        }
+
+        return subviews.contains {
+            $0.containsKeyboardTextInputArea(at: location, in: window)
+        }
     }
 }
 

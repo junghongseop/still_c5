@@ -52,6 +52,7 @@ struct MovieSearchField: View {
                     lineWidth: 1.5
                 )
         }
+        .keyboardTextInputArea()
         .onTapGesture {
             isFocused = true
         }
