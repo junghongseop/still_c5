@@ -1,0 +1,61 @@
+language: "ko-KR"
+tone_instructions: "간결하고 근거 중심으로 설명하세요. 사소한 취향보다 실제 버그, 회귀 가능성, 보안, 접근성, 성능 문제를 우선하세요."
+early_access: false
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  high_level_summary_in_walkthrough: true
+  review_status: true
+  review_details: false
+  collapse_walkthrough: true
+  changed_files_summary: true
+  in_progress_fortune: false
+  poem: false
+
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+    ignore_title_keywords:
+      - "WIP"
+      - "DO NOT MERGE"
+      - "[skip review]"
+
+  path_filters:
+    - "!Still/Resources/Assets.xcassets/**"
+    - "!Still/Resources/Fonts/**"
+
+  path_instructions:
+    - path: "**/*.swift"
+      instructions: |
+        - Swift 및 SwiftUI 관례를 따르는지 확인하세요.
+        - 강제 언래핑, 강제 캐스팅, 처리되지 않은 오류처럼 런타임 크래시를 만들 수 있는 코드를 우선 지적하세요.
+        - 비동기 작업의 취소, actor 격리, UI 상태의 MainActor 업데이트가 안전한지 확인하세요.
+        - View의 상태 소유권과 생명주기(@State, @Binding, @Observable 등)가 올바른지 확인하세요.
+        - 사용자에게 보이는 UI 변경은 접근성 레이블, Dynamic Type, 색상 대비와 현지화 가능성을 검토하세요.
+
+    - path: "Still/Core/Networking/**"
+      instructions: |
+        - HTTP 상태 코드, 디코딩 실패, 빈 응답과 네트워크 오류가 구분되어 처리되는지 확인하세요.
+        - 요청 취소와 중복 요청 방지가 올바른지, UI 스레드를 차단하지 않는지 확인하세요.
+        - API 키, 토큰, 개인정보가 코드나 로그에 노출되지 않는지 확인하세요.
+
+    - path: "Still/Core/Persistence/**"
+      instructions: |
+        - SwiftData 모델 변경이 기존 저장 데이터와 호환되는지 확인하세요.
+        - ModelContext 사용, 저장 및 삭제 흐름에서 데이터 불일치나 스레드 안전성 문제가 없는지 확인하세요.
+
+    - path: "Still/Features/**/ViewModels/**"
+      instructions: |
+        - 로딩, 성공, 빈 결과, 실패 상태 전이가 일관적인지 확인하세요.
+        - View가 사라진 뒤에도 Task가 남거나 오래된 응답이 최신 상태를 덮어쓰는 경쟁 조건이 없는지 확인하세요.
+
+  tools:
+    swiftlint:
+      enabled: true
+
+chat:
+  auto_reply: true
+  art: false
